@@ -18,10 +18,10 @@ def download_uniprot_sequence(accession):
 
 def main():
     categories = {
-        'protein_binding': 'data/protein_binding_filtered.tsv',
-        'dna_binding': 'data/dna_binding_filtered.tsv',
-        'rna_binding': 'data/rna_binding_filtered.tsv',
-        'ion_binding': 'data/ion_binding_filtered.tsv'
+        'protein_binding': 'data/filtered/protein_binding_filtered.tsv',
+        'dna_binding': 'data/filtered/dna_binding_filtered.tsv',
+        'rna_binding': 'data/filtered/rna_binding_filtered.tsv',
+        'ion_binding': 'data/filtered/ion_binding_filtered.tsv'
     }
     
     base_dir = Path("data/uniprot_sequences")
