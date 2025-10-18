@@ -144,6 +144,26 @@ ENV/
 env.bak/
 venv.bak/
 
+biotite_venv/
+*.pyc
+__pycache__/
+
+# Large data directories
+data/
+cif_files/
+cif_files_*/
+results/
+
+# Data files
+*.csv
+*.txt
+*.tar.gz
+*.zip
+
+# Temporary files
+temp_*/
+*.log
+
 # Spyder project settings
 .spyderproject
 .spyproject
