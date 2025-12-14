@@ -153,6 +153,7 @@ data/
 cif_files/
 cif_files_*/
 results/
+software/
 
 # Data files
 *.csv
