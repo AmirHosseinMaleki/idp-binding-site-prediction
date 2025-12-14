@@ -267,10 +267,10 @@ def verify_no_leakage(cluster_file='cluster_splits.json'):
     print(f"  Val-Test overlap: {len(val_test_overlap)} clusters")
     
     if any([train_val_overlap, train_test_overlap, val_test_overlap]):
-        print("\n⚠️ WARNING: Found cluster overlaps! Information leakage detected!")
+        print("\n WARNING: Found cluster overlaps! Information leakage detected!")
         return False
     else:
-        print("\n✅ No cluster overlaps found. No information leakage!")
+        print("\n No cluster overlaps found. No information leakage!")
         return True
 
 
@@ -293,7 +293,6 @@ def main():
     if cluster_file is None:
         print("\nERROR: MMseqs2 clustering failed!")
         print("Please install MMseqs2 and try again:")
-        print("  conda install -c bioconda mmseqs2")
         return
     
     train_df, val_df, test_df = create_cluster_aware_splits(
@@ -307,15 +306,6 @@ def main():
         print("\n" + "="*60)
         print("Cluster-aware splits created")
         print("="*60)
-        print("\nNext steps:")
-        print("1. Update your training scripts to use:")
-        print("   - train_data_clustered.csv")
-        print("   - val_data_clustered.csv") 
-        print("   - test_data_clustered.csv")
-        print("2. Retrain your models with these new splits")
-        print("3. Re-evaluate performance")
-        print("\nNote: Performance might be slightly lower with cluster-aware")
-        print("splits, but it will be more realistic and generalizable!")
     else:
         print("\nERROR: Information leakage detected!")
         print("Please check the splitting logic")
