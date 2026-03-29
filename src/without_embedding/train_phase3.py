@@ -2,18 +2,49 @@ import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, ConcatDataset
 
 WINDOW_SIZE = 31
 BATCH_SIZE = 512
-EPOCHS = 5
-LR = 0.0001
+EPOCHS = 30
+LR = 0.001
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 AA_VOCAB = 'ACDEFGHIKLMNPQRSTVWYX'
 AA_TO_IDX = {aa: i for i, aa in enumerate(AA_VOCAB)}
 
-class BindingDataset(Dataset):
+class StructuredDataset(Dataset):
+    def __init__(self, csv_file):
+        df = pd.read_csv(csv_file)
+        self.samples = []
+        self.labels = []
+        half_w = WINDOW_SIZE // 2
+        
+        for _, row in df.iterrows():
+            seq = row['sequence']
+            ann = row['annotation']
+            padded = 'X' * half_w + seq + 'X' * half_w
+            
+            for i in range(len(seq)):
+                window = padded[i:i+WINDOW_SIZE]
+                encoded = np.zeros((WINDOW_SIZE, len(AA_VOCAB)), dtype=np.float32)
+                for j, aa in enumerate(window):
+                    idx = AA_TO_IDX.get(aa, AA_TO_IDX['X'])
+                    encoded[j, idx] = 1.0
+                
+                self.samples.append(encoded.flatten())
+                self.labels.append(int(ann[i]))
+        
+        self.samples = np.array(self.samples, dtype=np.float32)
+        self.labels = np.array(self.labels, dtype=np.float32)
+    
+    def __len__(self):
+        return len(self.samples)
+    
+    def __getitem__(self, idx):
+        return self.samples[idx], self.labels[idx]
+
+class DisprotDataset(Dataset):
     def __init__(self, tsv_file):
         df = pd.read_csv(tsv_file, sep='\t')
         self.samples = []
@@ -90,16 +121,22 @@ def validate(model, loader, criterion):
             total_loss += loss.item()
     return total_loss / len(loader)
 
-train_data = BindingDataset('ion_binding_train.tsv')
-val_data = BindingDataset('ion_binding_val.tsv')
+struct_train = StructuredDataset('train_data.csv')
+struct_val = StructuredDataset('val_data.csv')
 
-train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
-val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, num_workers=2)
+disprot_train = DisprotDataset('ion_binding_train.tsv')
+disprot_val = DisprotDataset('ion_binding_val.tsv')
+
+train_data = ConcatDataset([struct_train, disprot_train])
+val_data = ConcatDataset([struct_val, disprot_val])
+
+train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=1)
+val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, num_workers=1)
 
 input_size = WINDOW_SIZE * len(AA_VOCAB)
 model = BindingNet(input_size).to(DEVICE)
 
-pos_weight = torch.tensor([2.0]).to(DEVICE)
+pos_weight = torch.tensor([20.0]).to(DEVICE)
 criterion = nn.BCELoss(reduction='none')
 
 def weighted_loss(out, y):
@@ -119,6 +156,6 @@ for epoch in range(EPOCHS):
     
     if val_loss < best_loss:
         best_loss = val_loss
-        torch.save(model.state_dict(), 'phase2_model.pt')
+        torch.save(model.state_dict(), 'phase3_model.pt')
 
 print(f"\nBest val loss: {best_loss:.4f}")

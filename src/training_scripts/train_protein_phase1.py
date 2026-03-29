@@ -6,7 +6,7 @@ from torch.utils.data import Dataset, DataLoader
 
 WINDOW_SIZE = 31
 BATCH_SIZE = 512
-EPOCHS = 5
+EPOCHS = 10
 LR = 0.001
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -50,15 +50,14 @@ class BindingNet(nn.Module):
         self.net = nn.Sequential(
             nn.Linear(input_size, 256),
             nn.ReLU(),
-            nn.Dropout(0.3),
+            nn.Dropout(0.5),
             nn.Linear(256, 512),
             nn.ReLU(),
-            nn.Dropout(0.3),
+            nn.Dropout(0.5),
             nn.Linear(512, 256),
             nn.ReLU(),
-            nn.Dropout(0.3),
+            nn.Dropout(0.5),
             nn.Linear(256, 1),
-            nn.Sigmoid()
         )
     
     def forward(self, x):
@@ -88,8 +87,12 @@ def validate(model, loader, criterion):
             total_loss += loss.item()
     return total_loss / len(loader)
 
-train_data = BindingDataset('train_data.csv')
-val_data = BindingDataset('val_data.csv')
+print("="*60)
+print("Phase 1: Training on ScanNet (Structured Protein-Protein)")
+print("="*60)
+
+train_data = BindingDataset('/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/scannet_train_clustered.csv')
+val_data = BindingDataset('/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/scannet_val_clustered.csv')
 
 train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
 val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, num_workers=2)
@@ -97,26 +100,36 @@ val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, num_workers=2)
 input_size = WINDOW_SIZE * len(AA_VOCAB)
 model = BindingNet(input_size).to(DEVICE)
 
-pos_weight = torch.tensor([33.3]).to(DEVICE)
-criterion = nn.BCELoss(reduction='none')
+# Adjusted weight for ~18% positive (instead of 1.5%)
+# Ratio = (100-18)/18 = 4.5
+pos_weight = torch.tensor([3.0]).to(DEVICE)
+criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
 
-def weighted_loss(out, y):
-    loss = criterion(out, y)
-    weights = torch.where(y == 1, pos_weight, 0.5)
-    return (loss * weights).mean()
+optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=0.01)
 
-optimizer = torch.optim.AdamW(model.parameters(), lr=LR)
+print(f"\nDataset sizes:")
+print(f"  Train: {len(train_data):,} residues")
+print(f"  Val: {len(val_data):,} residues")
+print(f"\nTraining settings:")
+print(f"  Device: {DEVICE}")
+print(f"  Epochs: {EPOCHS}")
+print(f"  Batch size: {BATCH_SIZE}")
+print(f"  Learning rate: {LR}")
+print(f"  Positive weight: {pos_weight.item()}")
 
 best_loss = float('inf')
 for epoch in range(EPOCHS):
     print(f"\nEpoch {epoch+1}/{EPOCHS}")
-    train_loss = train_epoch(model, train_loader, weighted_loss, optimizer)
-    val_loss = validate(model, val_loader, weighted_loss)
+    train_loss = train_epoch(model, train_loader, criterion, optimizer)
+    val_loss = validate(model, val_loader, criterion)
     
     print(f"Train: {train_loss:.4f} | Val: {val_loss:.4f}")
     
     if val_loss < best_loss:
         best_loss = val_loss
-        torch.save(model.state_dict(), 'phase1_model.pt')
+        torch.save(model.state_dict(), '/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/protein_phase1_model.pt')
+        print("  Saved best model")
 
-print(f"\nBest val loss: {best_loss:.4f}")
+print(f"\n{'='*60}")
+print(f"Training complete!")
+print(f"Best val loss: {best_loss:.4f}")

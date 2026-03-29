@@ -2,12 +2,10 @@ import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader, ConcatDataset
+from torch.utils.data import Dataset, DataLoader
 
 WINDOW_SIZE = 31
 BATCH_SIZE = 512
-EPOCHS = 5
-LR = 0.001
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 AA_VOCAB = 'ACDEFGHIKLMNPQRSTVWYX'
@@ -121,22 +119,20 @@ def validate(model, loader, criterion):
             total_loss += loss.item()
     return total_loss / len(loader)
 
-struct_train = StructuredDataset('train_data.csv')
-struct_val = StructuredDataset('val_data.csv')
-
-disprot_train = DisprotDataset('ion_binding_train.tsv')
-disprot_val = DisprotDataset('ion_binding_val.tsv')
-
-train_data = ConcatDataset([struct_train, disprot_train])
-val_data = ConcatDataset([struct_val, disprot_val])
-
-train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=1)
-val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, num_workers=1)
-
 input_size = WINDOW_SIZE * len(AA_VOCAB)
 model = BindingNet(input_size).to(DEVICE)
 
-pos_weight = torch.tensor([20.0]).to(DEVICE)
+print("="*60)
+print("STAGE 1: Pre-training on Structured Data (AHoJ)")
+print("="*60)
+
+struct_train = StructuredDataset('train_data.csv')
+struct_val = StructuredDataset('val_data.csv')
+
+struct_train_loader = DataLoader(struct_train, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
+struct_val_loader = DataLoader(struct_val, batch_size=BATCH_SIZE, num_workers=2)
+
+pos_weight = torch.tensor([33.3]).to(DEVICE)
 criterion = nn.BCELoss(reduction='none')
 
 def weighted_loss(out, y):
@@ -144,18 +140,49 @@ def weighted_loss(out, y):
     weights = torch.where(y == 1, pos_weight, 0.5)
     return (loss * weights).mean()
 
-optimizer = torch.optim.AdamW(model.parameters(), lr=LR)
+optimizer = torch.optim.AdamW(model.parameters(), lr=0.001)
 
+PRETRAIN_EPOCHS = 5
 best_loss = float('inf')
-for epoch in range(EPOCHS):
-    print(f"\nEpoch {epoch+1}/{EPOCHS}")
-    train_loss = train_epoch(model, train_loader, weighted_loss, optimizer)
-    val_loss = validate(model, val_loader, weighted_loss)
+
+for epoch in range(PRETRAIN_EPOCHS):
+    print(f"\nEpoch {epoch+1}/{PRETRAIN_EPOCHS}")
+    train_loss = train_epoch(model, struct_train_loader, weighted_loss, optimizer)
+    val_loss = validate(model, struct_val_loader, weighted_loss)
     
     print(f"Train: {train_loss:.4f} | Val: {val_loss:.4f}")
     
     if val_loss < best_loss:
         best_loss = val_loss
-        torch.save(model.state_dict(), 'phase3_model.pt')
 
-print(f"\nBest val loss: {best_loss:.4f}")
+print(f"\nPre-training done! Best val loss: {best_loss:.4f}")
+
+print("\n" + "="*60)
+print("STAGE 2: Fine-tuning on DisProt Data")
+print("="*60)
+
+disprot_train = DisprotDataset('ion_binding_train.tsv')
+disprot_val = DisprotDataset('ion_binding_val.tsv')
+
+disprot_train_loader = DataLoader(disprot_train, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
+disprot_val_loader = DataLoader(disprot_val, batch_size=BATCH_SIZE, num_workers=2)
+
+pos_weight = torch.tensor([2.0]).to(DEVICE)
+
+optimizer = torch.optim.AdamW(model.parameters(), lr=0.0001)
+
+FINETUNE_EPOCHS = 5
+best_loss = float('inf')
+
+for epoch in range(FINETUNE_EPOCHS):
+    print(f"\nEpoch {epoch+1}/{FINETUNE_EPOCHS}")
+    train_loss = train_epoch(model, disprot_train_loader, weighted_loss, optimizer)
+    val_loss = validate(model, disprot_val_loader, weighted_loss)
+    
+    print(f"Train: {train_loss:.4f} | Val: {val_loss:.4f}")
+    
+    if val_loss < best_loss:
+        best_loss = val_loss
+        torch.save(model.state_dict(), 'finetuned_model.pt')
+
+print(f"\nFine-tuning done! Best val loss: {best_loss:.4f}")
