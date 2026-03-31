@@ -157,7 +157,7 @@ software/
 
 # Data files
 *.csv
-*.txt
+src/**/*.txt
 *.tar.gz
 *.zip
 
