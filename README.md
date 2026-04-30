@@ -68,12 +68,13 @@ The project employs a progressive multi-phase training strategy, starting with h
 The project uses multiple datasets for training and evaluation. Data files are currently not publicly available but can be prepared from the following sources.
 
 ### Dataset Sources
-- **AHoJ-DB**: Ion-protein binding data (used for ion binding sites)
-- **BioLiP**: DNA/RNA-protein binding data from PDB (used for nucleic acid binding sites)
-- **ScanNet**: Protein-protein interaction data (used for protein binding sites)
-- **DisProt**: Intrinsically disordered protein annotations (used for IDP-specific training across all binding types)
-- **CAID3**: Official benchmark test set used for final model evaluation and comparison with published methods
-- **MMseqs2**: Sequence clustering tool used to prevent train/test overlap (sequences with >10% identity separated across splits)
+- **[AHoJ-DB](https://apoholo.cz/db/archive)**: Ion-protein binding data (used for ion binding sites)
+- **[BioLiP](https://aideepmed.com/BioLiP/download.html)**: DNA/RNA-protein binding data from PDB (used for nucleic acid binding sites)
+- **[ScanNet](https://github.com/jertubiana/ScanNet/tree/main/datasets)**: Protein-protein interaction data (used for protein binding sites)
+- **[DisProt](https://disprot.org/download)**: Intrinsically disordered protein annotations (used for IDP-specific training across all binding types)
+- **UniProt**: Protein sequences retrieved programmatically via the [UniProt REST API](https://rest.uniprot.org/) using `src/idp - old/download_sequences.py`
+- **[CAID3](https://caid.idpcentral.org/)**: Official benchmark test set used for final model evaluation and comparison with published methods
+- **[MMseqs2](https://github.com/soedinglab/MMseqs2)**: Sequence clustering tool used to prevent train/test overlap (sequences with >10% identity separated across splits)
 
 ### Data Preparation
 Data preparation involves several steps:
@@ -91,8 +92,8 @@ Data preparation involves several steps:
    - Scripts: `src/prepare_data/generate_embeddings.py`
 
 4. **Split datasets**:
-   - Apply CAID3 clustering to avoid train/test overlap.
-   - Create train/val/test splits with balanced IDP representation.
+   - Apply MMseqs2 clustering to ensure <10% sequence identity between splits.
+   - Filter against CAID3 test set to prevent overlap with the benchmark.
 
 5. **Preprocess for training**:
    - Handle class imbalance with appropriate weighting.
