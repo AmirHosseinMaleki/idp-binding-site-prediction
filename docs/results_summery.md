@@ -33,30 +33,46 @@ Three binding categories were collected from complementary structured and IDP da
 
 **Structured datasets (used as Phase 1 training data):**
 
-| Dataset | Total Residues | Binding Residues | Non-Binding | Positive % |
-|---------|---------------|-----------------|-------------|------------|
-| AHoJ-DB (Ion) | 40,425,126 | 635,694 | 39,789,432 | 1.6% |
-| BioLiP (DNA/RNA) | 761,984 | 46,560 | 715,424 | 6.1% |
-| ScanNet (Protein) | 1,058,012 | 192,956 | 865,056 | 18.2% |
+| Dataset | Train | Val | Test | Train Positive % |
+|---------|-------|-----|------|-----------------|
+| AHoJ-DB (Ion) | 40,425,126 | 8,897,271 | 8,998,264 | 1.6% |
+| BioLiP (DNA/RNA) | 761,984 | 159,405 | 157,317 | 6.1% |
+| ScanNet (Protein) | 1,058,012 | 219,052 | 222,189 | 18.2% |
 
 **IDP datasets (DisProt, used as Phase 2 training and test data):**
 
-| Dataset | Total Residues | Binding Residues | Non-Binding | Positive % |
-|---------|---------------|-----------------|-------------|------------|
-| DisProt Ion | 27,726 | 11,821 | 15,905 | 42.6% |
-| DisProt DNA/RNA | 59,725 | 21,787 | 37,938 | 36.5% |
-| DisProt Protein | 370,265 | 107,630 | 262,635 | 29.1% |
+| Dataset | Train | Val | Test | Train Positive % |
+|---------|-------|-----|------|-----------------|
+| DisProt Ion | 22,674 | 4,940 | 4,112 | 43.0% |
+| DisProt DNA/RNA | 38,657 | 11,149 | 9,919 | 34.4% |
+| DisProt Protein | 263,522 | 49,769 | 56,974 | 29.6% |
 
 **Train/val/test split sizes (residues, 70/15/15 at cluster level):**
 
-| Dataset | Train Residues | Val Residues | Test Residues | Train Binding % |
-|---------|---------------|-------------|--------------|-----------------|
-| AHoJ-DB | 40,425,126 | — | 8,998,264* | 1.6% |
-| DisProt Ion | 22,674 | 4,940 | 4,112 | 43.0% |
-| BioLiP DNA/RNA | 761,984 | — | 157,317* | 6.1% |
-| DisProt DNA/RNA | 38,657 | 11,149 | 9,919 | 34.4% |
-| ScanNet | 1,058,012 | — | 222,189* | 18.2% |
-| DisProt Protein | 263,522 | 49,769 | 56,974 | 29.6% |
+| Source | Split | Total Residues | Binding | Non-Binding | Positive % |
+|--------|-------|---------------|---------|-------------|------------|
+| ScanNet | Train | 1,058,012 | 192,956 | 865,056 | 18.2% |
+| ScanNet | Val | 219,052 | 39,477 | 179,575 | 18.0% |
+| ScanNet | Test | 222,189 | 40,560 | 181,629 | 18.3% |
+| DisProt Protein | Train | 263,522 | 78,032 | 185,490 | 29.6% |
+| DisProt Protein | Val | 49,769 | 14,238 | 35,531 | 28.6% |
+| DisProt Protein | Test | 56,974 | 15,360 | 41,614 | 27.0% |
+| **Protein Combined** | **Total** | **1,869,518** | **380,623** | **1,488,895** | **20.4%** |
+| BioLiP | Train | 761,984 | 46,560 | 715,424 | 6.1% |
+| BioLiP | Val | 159,405 | 10,101 | 149,304 | 6.3% |
+| BioLiP | Test | 157,317 | 10,034 | 147,283 | 6.4% |
+| DisProt DNA/RNA | Train | 38,657 | 13,313 | 25,344 | 34.4% |
+| DisProt DNA/RNA | Val | 11,149 | 4,968 | 6,181 | 44.6% |
+| DisProt DNA/RNA | Test | 9,919 | 3,506 | 6,413 | 35.3% |
+| **DNA/RNA Combined** | **Total** | **1,138,431** | **88,482** | **1,049,949** | **7.8%** |
+| AHoJ-DB | Train | 40,425,126 | 635,694 | 39,789,432 | 1.6% |
+| AHoJ-DB | Val | 8,897,271 | 138,442 | 8,758,829 | 1.6% |
+| AHoJ-DB | Test | 8,998,264 | 135,132 | 8,863,132 | 1.5% |
+| DisProt Ion | Train | 22,674 | 9,748 | 12,926 | 43.0% |
+| DisProt Ion | Val | 4,940 | 1,118 | 3,822 | 22.6% |
+| DisProt Ion | Test | 4,112 | 955 | 3,157 | 23.2% |
+| **Ion Combined** | **Total** | **58,352,387** | **921,089** | **57,431,298** | **1.6%** |
+| **Grand Total** | **All** | **61,360,336** | **1,390,194** | **59,970,142** | **2.3%** |
 
 *Structured dataset val/test sizes from evaluation script output.
 
@@ -169,6 +185,9 @@ Three training phases were tested for each binding type:
 | Phase 1 | Structured only (AHoJ-DB / BioLiP / ScanNet) | Mixed | Baseline on structured data |
 | Phase 2 | IDP only (DisProt) | DisProt | Baseline on IDP data |
 | Phase 3 (Hybrid) | Structured + DisProt | DisProt only | Research hypothesis |
+
+*Exact residue counts per split for each training configuration are in 
+[Task 1 — Dataset Statistics](#task-1-data-collection-and-preprocessing).*
 
 The key innovation in Phase 3 is using DisProt-only validation (not mixed) to select the best checkpoint. This ensures the saved model is the one that performs best on IDP sequences specifically, even though it was trained on a much larger combined dataset.
 
