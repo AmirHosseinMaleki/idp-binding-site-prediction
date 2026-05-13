@@ -4,6 +4,9 @@ This research project focuses on predicting protein-protein, DNA/RNA, and ion bi
 
 ## Table of Contents
 - [Overview](#overview)
+- [Results](#results)
+- [Demo](#demo)
+- [Documentation](#documentation)
 - [Environment Setup](#environment-setup)
 - [Quick Start](#quick-start)
 - [Data](#data)
@@ -14,6 +17,40 @@ This research project focuses on predicting protein-protein, DNA/RNA, and ion bi
 ## Overview
 
 The project employs a progressive multi-phase training strategy, starting with high-quality structured datasets and adapting to IDP-specific characteristics. It compares multiple neural architectures (MLP, 1D CNN, Bi-LSTM, Bi-GRU) and implements multi-task learning to capture shared patterns across different binding types. Key innovations include sophisticated class weighting to handle severe imbalance (up to 66:1 negative-to-positive ratio) and hybrid IDP-validation approaches to ensure performance on disordered regions.
+
+## Results
+
+Best model performance on the DisProt IDP test set (hybrid training, MLP architecture):
+
+| Binding Type | AUC    | AUPRC  | MCC    | F1     |
+|--------------|--------|--------|--------|--------|
+| Protein-Protein | 0.8438 | 0.6267 | 0.5060 | 0.6507 |
+| DNA/RNA      | 0.8394 | 0.6214 | 0.4986 | 0.6460 |
+| Ion          | 0.8571 | 0.6352 | 0.5034 | 0.6256 |
+
+Full results, hyperparameter tuning analysis, and comparison across all training strategies: [docs/results_summary.md](docs/results_summary.md)
+
+## Demo
+
+Run a prediction on a single protein sequence:
+```bash
+python predict.py \
+  --sequence "MDVFMKGLSKAKEGVVAAAEKTKQGVAEAAGKTKEGVLYVGSKTKEGVVHGVATVAEKTKEQASHLGGAVVGGSNNQQNYPPQGSTSNSTYGSSRNMQDIVPNDSRSRPQHSMSRHNPQNSSSTFAFAQNHFQSSDAPGATNSSSNSSTNNNSSSVSGSGRNMQDIVPNDS" \
+  --binding_type protein \
+  --output results/prediction.tsv
+```
+
+This sequence is human alpha-synuclein (UniProt P37840), a well-characterized IDP. The model predicts per-residue binding probabilities.
+
+> **Note:** Pre-trained model weights and a full visualization example are provided in [demo/](demo/).
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Data Preparation](docs/data_preparation.md) | Step-by-step pipeline for all three binding types |
+| [Code Architecture](docs/code_architecture.md) | Detailed module descriptions and class references |
+| [Results Summary](docs/results_summary.md) | Formal results document following project specification |
 
 ## Environment Setup
 
@@ -72,7 +109,7 @@ The project uses multiple datasets for training and evaluation. Data files are c
 - **[BioLiP](https://aideepmed.com/BioLiP/download.html)**: DNA/RNA-protein binding data from PDB (used for nucleic acid binding sites)
 - **[ScanNet](https://github.com/jertubiana/ScanNet/tree/main/datasets)**: Protein-protein interaction data (used for protein binding sites)
 - **[DisProt](https://disprot.org/download)**: Intrinsically disordered protein annotations (used for IDP-specific training across all binding types)
-- **UniProt**: Protein sequences retrieved programmatically via the [UniProt REST API](https://rest.uniprot.org/) using `src/idp - old/download_sequences.py`
+- **UniProt**: Protein sequences retrieved programmatically via the [UniProt REST API](https://rest.uniprot.org/) using `src/idp_old/download_sequences.py`
 - **[CAID3](https://caid.idpcentral.org/)**: Official benchmark test set used for final model evaluation and comparison with published methods
 - **[MMseqs2](https://github.com/soedinglab/MMseqs2)**: Sequence clustering tool used to prevent train/test overlap (sequences with >10% identity separated across splits)
 
