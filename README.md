@@ -20,13 +20,15 @@ The project employs a progressive multi-phase training strategy, starting with h
 
 ## Results
 
-Best model performance on the DisProt IDP test set (hybrid training, MLP architecture):
+Best model performance on the DisProt IDP test set (hybrid training, MLP, optimized hyperparameters):
 
-| Binding Type | AUC    | AUPRC  | MCC    | F1     |
-|--------------|--------|--------|--------|--------|
-| Protein-Protein | 0.8438 | 0.6267 | 0.5060 | 0.6507 |
-| DNA/RNA      | 0.8394 | 0.6214 | 0.4986 | 0.6460 |
-| Ion          | 0.8571 | 0.6352 | 0.5034 | 0.6256 |
+| Binding Type    | AUC    | AUPRC  | MCC    | F1     |
+|-----------------|--------|--------|--------|--------|
+| Protein-Protein | 0.8394 | 0.6214 | 0.4986 | 0.6460 |
+| DNA/RNA         | 0.7126 | 0.5548 | 0.3618 | 0.5881 |
+| Ion             | 0.8487 | 0.5931 | 0.4898 | 0.6135 |
+
+Full results including phase comparison, architecture benchmarks, and hyperparameter tuning analysis: [docs/results_summary.md](docs/results_summary.md)
 
 Full results, hyperparameter tuning analysis, and comparison across all training strategies: [docs/results_summary.md](docs/results_summary.md)
 
@@ -114,65 +116,28 @@ The project uses multiple datasets for training and evaluation. Data files are c
 - **[MMseqs2](https://github.com/soedinglab/MMseqs2)**: Sequence clustering tool used to prevent train/test overlap (sequences with >10% identity separated across splits)
 
 ### Data Preparation
-Data preparation involves several steps:
-
-1. **Download raw data** from respective sources (AHoJ-DB, BioLiP, DisProt, ScanNet).
-
-2. **Extract binding sites**:
-   - For ions: Parse AHoJ-DB annotations to identify ion-binding residues.
-   - For DNA/RNA: Process BioLiP entries to extract nucleic acid contact sites.
-   - For proteins: Use ScanNet interaction data.
-   - For IDPs: Filter DisProt sequences and annotations.
-
-3. **Generate embeddings**:
-   - Use ESM-2 model to create 1280-dimensional embeddings for protein sequences.
-   - Scripts: `src/prepare_data/generate_embeddings.py`
-
-4. **Split datasets**:
-   - Apply MMseqs2 clustering to ensure <10% sequence identity between splits.
-   - Filter against CAID3 test set to prevent overlap with the benchmark.
-
-5. **Preprocess for training**:
-   - Handle class imbalance with appropriate weighting.
-   - Prepare input tensors for different model architectures.
+Full step-by-step pipeline for all three binding types: [docs/data_preparation.md](docs/data_preparation.md)
 
 ## Code Architecture
 
-The project is organized into the following modules:
+The project is organized into the following top-level modules:
 
-### `src/prepare_data/`
-- Data preprocessing and embedding generation
-- Scripts: `generate_embeddings.py`, `process_biolip.py`, `split_disprot.py`
-- Responsibility: Convert raw datasets into training-ready format
+| Module | Responsibility |
+|--------|---------------|
+| `src/prepare_data/` | Data preprocessing, clustering, and embedding generation |
+| `src/staticp_old/` | AHoJ-DB ion binding site extraction pipeline |
+| `src/idp_old/` | DisProt data collection and UniProt sequence download |
+| `src/other_codes/` | Ion dataset utilities and clustering |
+| `src/base_codes/` | Phase 1–3 training scripts and SLURM submission files |
+| `src/training_scripts/` | Hybrid and multi-task training |
+| `src/architecture_tests/` | MLP vs CNN vs LSTM vs GRU comparison |
+| `src/parameter_testing/` | Hyperparameter grid search |
+| `src/optimal_epoch_testing/` | Epoch count optimisation |
+| `src/evaluate_scripts/` | Model evaluation and phase comparison |
+| `src/without_embedding/` | Sequence-only baseline (no ESM-2) |
 
-### `src/base_codes/`
-- Core training scripts for Phase 1-3
-- Scripts: `train_ion_phase1.py`, `train_dna_rna_phase2.py`, etc.
-- Responsibility: Implement progressive training strategy
+Full module descriptions, class references, and data flow diagram: [docs/code_architecture.md](docs/code_architecture.md)
 
-### `src/training_scripts/`
-- Advanced training approaches
-- Scripts: `train_*_hybrid_idp_val.py`, `train_multitask_*.py`
-- Responsibility: Multi-task learning and IDP-focused validation
-
-### `src/evaluate_scripts/`
-- Model evaluation and comparison
-- Scripts: `evaluate_*_all_phases.py`, `evaluate_*_comparison.py`
-- Responsibility: Comprehensive performance assessment
-
-### `src/architecture_tests/`
-- Architecture benchmarking
-- Scripts: `architecture_test_ion.py`, `architecture_test_dna_rna.py`
-- Responsibility: Compare MLP, CNN, LSTM, GRU performance
-
-### `src/without_embedding/`
-- Alternative sequence-based approach
-- Scripts: `train_phase1.py`, `train_phase2.py`, etc.
-- Responsibility: Direct sequence processing without pre-computed embeddings
-
-### `src/parameter_testing/`
-- Hyperparameter optimization
-- Scripts: `grid_search_protein.py`
 ## Execution Guide
 
 ### Training Models
@@ -233,8 +198,9 @@ python src/parameter_testing/grid_search_protein.py
 ```
 
 ### Notes
-- Ensure data is prepared and embeddings generated before training.
-- Models are saved as `.pt` files in the `data/` directory.
+- Ensure data is prepared and embeddings generated before running any training script. See [docs/data_preparation.md](docs/data_preparation.md).
+- All training scripts are designed for a SLURM cluster. Each `.py` script has a corresponding `.sh` submission file. Adjust paths if running locally.
+- Models are saved as `.pt` files in the `data/` directory. Pre-trained weights can be downloaded from [link to be added].
 - GPU is required for efficient training; adjust batch sizes for memory constraints.
 
 ## License
