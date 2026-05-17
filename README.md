@@ -38,8 +38,6 @@ Best model performance on the DisProt IDP test set (hybrid training, MLP, optimi
 
 Full results including phase comparison, architecture benchmarks, and hyperparameter tuning analysis: [docs/results_summary.md](docs/results_summary.md)
 
-Full results, hyperparameter tuning analysis, and comparison across all training strategies: [docs/results_summary.md](docs/results_summary.md)
-
 ## Demo
 
 Run a prediction on a single protein sequence:
