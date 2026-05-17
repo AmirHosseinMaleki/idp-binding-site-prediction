@@ -14,9 +14,10 @@ This research project focuses on predicting protein-protein, DNA/RNA, and ion bi
 - [Execution Guide](#execution-guide)
 - [License](#license)
 
-## Overview
 
 ## Overview
+
+![Binding site prediction on a disordered protein sequence](figures/binding-site.svg)
 
 IDPs lack stable 3D structure, which means structure-based binding site predictors cannot be applied to them. Existing sequence-based models are typically trained on structured proteins, leaving a gap in IDP-specific prediction. This project investigates whether that gap can be closed by **hybrid training** - combining large structured-protein binding databases (AHoJ-DB, BioLiP, ScanNet) with IDP-specific annotations from DisProt, while using DisProt-only validation to ensure the saved model performs best on disordered regions.
 
