@@ -16,7 +16,15 @@ This research project focuses on predicting protein-protein, DNA/RNA, and ion bi
 
 ## Overview
 
-The project employs a progressive multi-phase training strategy, starting with high-quality structured datasets and adapting to IDP-specific characteristics. It compares multiple neural architectures (MLP, 1D CNN, Bi-LSTM, Bi-GRU) and implements multi-task learning to capture shared patterns across different binding types. Key innovations include sophisticated class weighting to handle severe imbalance (up to 66:1 negative-to-positive ratio) and hybrid IDP-validation approaches to ensure performance on disordered regions.
+## Overview
+
+IDPs lack stable 3D structure, which means structure-based binding site predictors cannot be applied to them. Existing sequence-based models are typically trained on structured proteins, leaving a gap in IDP-specific prediction. This project investigates whether that gap can be closed by **hybrid training** - combining large structured-protein binding databases (AHoJ-DB, BioLiP, ScanNet) with IDP-specific annotations from DisProt, while using DisProt-only validation to ensure the saved model performs best on disordered regions.
+
+Three binding types are addressed: protein-protein, DNA/RNA, and ion binding. For each, models are trained across three phases - structured data only, IDP data only, and hybrid - and evaluated on a held-out DisProt test set to measure IDP prediction quality directly.
+
+The core finding is that hybrid training consistently outperforms both single-source alternatives: it matches structured-only performance on structured test sets while achieving significantly better IDP prediction than IDP-only training, which is limited by DisProt's small size.
+
+ESM-2 protein language model embeddings (1280-dimensional, per-residue) are used as input features, chosen because they operate purely on sequence and thus apply equally to structured and disordered proteins. Architecture and hyperparameter experiments were conducted to confirm the chosen MLP setup is well-suited for this input type and to rule out that results were an artefact of a suboptimal model.
 
 ## Results
 
