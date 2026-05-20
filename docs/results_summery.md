@@ -1,6 +1,6 @@
 # Results Summary
 
-This document summarizes the implementation, data statistics, and model performance for each task in the project specification. The project investigates whether hybrid training — combining binding site data from structured proteins with IDP binding data from DisProt — improves binding site prediction in intrinsically disordered protein regions.
+This document summarizes the implementation, data statistics, and model performance for each task in the project specification. The project investigates whether hybrid training - combining binding site data from structured proteins with IDP binding data from DisProt - improves binding site prediction in intrinsically disordered protein regions.
 
 ---
 
@@ -138,7 +138,7 @@ Four architectures were evaluated on the protein-protein binding task (DisProt t
 | 1D CNN | 0.8265 | 0.6139 | 0.4730 | 0.6292 | 9.5 min |
 | Bi-LSTM | 0.8214 | 0.5816 | 0.4645 | 0.6234 | 2.8 min |
 
-**Δ vs MLP baseline:**
+**CNN and Recurrent vs MLP baseline:**
 
 | Architecture | Δ AUC | Δ AUPRC | Δ MCC | Δ F1 |
 |---|---|---|---|---|
@@ -146,7 +146,7 @@ Four architectures were evaluated on the protein-protein binding task (DisProt t
 | Bi-LSTM | -0.0214 | -0.0446 | -0.0426 | -0.0283 |
 | Bi-GRU | -0.0145 | -0.0391 | -0.0291 | -0.0194 |
 
-**Finding:** MLP outperforms all recurrent and convolutional alternatives on every metric and trains 1.5–6× faster. This is consistent with the nature of the input: ESM-2 embeddings are already rich per-residue representations that encode sequential context internally. Adding explicit sequential modelling (LSTM/GRU) or local pattern detection (CNN) on top provides no benefit — the ESM-2 model has already captured those patterns during pre-training.
+**Finding:** MLP outperforms all recurrent and convolutional alternatives on every metric and trains 1.5–6× faster. This is consistent with the nature of the input: ESM-2 embeddings are already rich per-residue representations that encode sequential context internally. Adding explicit sequential modelling (LSTM/GRU) or local pattern detection (CNN) on top provides no benefit - the ESM-2 model has already captured those patterns during pre-training.
 
 ### Multi-Task Learning
 
@@ -187,7 +187,7 @@ Three training phases were tested for each binding type:
 | Phase 3 (Hybrid) | Structured + DisProt | DisProt only | Research hypothesis |
 
 *Exact residue counts per split for each training configuration are in 
-[Task 1 — Dataset Statistics](#task-1-data-collection-and-preprocessing).*
+[Task 1 - Dataset Statistics](#task-1-data-collection-and-preprocessing).*
 
 The key innovation in Phase 3 is using DisProt-only validation (not mixed) to select the best checkpoint. This ensures the saved model is the one that performs best on IDP sequences specifically, even though it was trained on a much larger combined dataset.
 
@@ -217,7 +217,7 @@ The key innovation in Phase 3 is using DisProt-only validation (not mixed) to se
 | Phase 2 (DisProt only) | 0.5679 | 0.7661 |
 | **Phase 3 (Hybrid)** | **0.9762** | **0.8581** |
 
-**Key finding — the hybrid approach validates the research hypothesis across all three binding types:**
+**Key finding - the hybrid approach validates the research hypothesis across all three binding types:**
 - Phase 3 maintains near-identical performance on structured test sets vs Phase 1 (no negative transfer from adding IDP data)
 - Phase 3 achieves the best or near-best DisProt performance across all three binding types
 - Phase 2 (IDP-only training) consistently collapses on structured test sets, confirming that DisProt data alone is insufficient

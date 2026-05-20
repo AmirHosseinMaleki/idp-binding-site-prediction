@@ -25,7 +25,7 @@ Three binding types are addressed: protein-protein, DNA/RNA, and ion binding. Fo
 
 The core finding is that hybrid training consistently outperforms both single-source alternatives: it matches structured-only performance on structured test sets while achieving significantly better IDP prediction than IDP-only training, which is limited by DisProt's small size.
 
-ESM-2 protein language model embeddings (1280-dimensional, per-residue) are used as input features, chosen because they operate purely on sequence and thus apply equally to structured and disordered proteins. Architecture and hyperparameter experiments were conducted to confirm the chosen MLP setup is well-suited for this input type and to rule out that results were an artefact of a suboptimal model.
+[ESM-2](https://github.com/facebookresearch/esm) protein language model embeddings (1280-dimensional, per-residue) are used as input features, chosen because they operate purely on sequence and thus apply equally to structured and disordered proteins. Architecture and hyperparameter experiments were conducted to confirm the chosen MLP setup is well-suited for this input type and to rule out that results were an artefact of a suboptimal model.
 
 ## Results
 
