@@ -1,0 +1,197 @@
+# =============================================================================
+# IDP Binding Site Prediction - Project Configuration
+# =============================================================================
+# Edit this file to match your environment before running any script.
+# All paths support both absolute and relative-to-project-root forms.
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Project root (set to the repository root directory)
+# ---------------------------------------------------------------------------
+project_root: /home/malekia/idp-binding-site-prediction
+
+# ---------------------------------------------------------------------------
+# Top-level data directory
+# All dataset subdirectories below are relative to data_dir unless they
+# start with "/", in which case they are treated as absolute paths.
+# ---------------------------------------------------------------------------
+data_dir: /home/malekia/idp-binding-site-prediction/data
+
+# ---------------------------------------------------------------------------
+# Raw / source datasets
+# ---------------------------------------------------------------------------
+datasets:
+  # AHoJ-DB ion binding (structured)
+  ahojdb:
+    dir: /home/malekia/idp-binding-site-prediction/data
+    ligand_tsv: /home/malekia/idp-binding-site-prediction/data/ligand.tsv
+    train_csv: /home/malekia/idp-binding-site-prediction/data/train_data.csv
+    val_csv:   /home/malekia/idp-binding-site-prediction/data/val_data.csv
+    test_csv:  /home/malekia/idp-binding-site-prediction/data/test_data.csv
+    train_clustered_csv: /home/malekia/idp-binding-site-prediction/data/train_data_clustered.csv
+    val_clustered_csv:   /home/malekia/idp-binding-site-prediction/data/val_data_clustered.csv
+    test_clustered_csv:  /home/malekia/idp-binding-site-prediction/data/test_data_clustered.csv
+
+  # ScanNet protein-protein binding (structured)
+  scannet:
+    dir: /home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS
+    table_csv:          /home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/table.csv
+    labels_train:       /home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/labels_train.txt
+    labels_val:         /home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/labels_validation_70.txt
+    labels_test:        /home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/labels_test_70.txt
+    train_csv:          /home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/scannet_train.csv
+    val_csv:            /home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/scannet_val.csv
+    test_csv:           /home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/scannet_test.csv
+    train_clustered_csv: /home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/scannet_train_clustered.csv
+    val_clustered_csv:   /home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/scannet_val_clustered.csv
+    test_clustered_csv:  /home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/scannet_test_clustered.csv
+
+  # BioLiP DNA/RNA binding (structured)
+  biolip:
+    dir: /home/malekia/idp-binding-site-prediction/data/biolip
+    protein_fasta: /home/malekia/idp-binding-site-prediction/data/biolip/protein_nr.fasta
+    annotation_txt: /home/malekia/idp-binding-site-prediction/data/biolip/BioLiP_nr.txt
+    dna_all_csv:   /home/malekia/idp-binding-site-prediction/data/biolip/biolip_dna_all.csv
+    rna_all_csv:   /home/malekia/idp-binding-site-prediction/data/biolip/biolip_rna_all.csv
+    dna_train_csv: /home/malekia/idp-binding-site-prediction/data/biolip/biolip_dna_clustered_train.csv
+    dna_val_csv:   /home/malekia/idp-binding-site-prediction/data/biolip/biolip_dna_clustered_val.csv
+    dna_test_csv:  /home/malekia/idp-binding-site-prediction/data/biolip/biolip_dna_clustered_test.csv
+    rna_train_csv: /home/malekia/idp-binding-site-prediction/data/biolip/biolip_rna_clustered_train.csv
+    rna_val_csv:   /home/malekia/idp-binding-site-prediction/data/biolip/biolip_rna_clustered_val.csv
+    rna_test_csv:  /home/malekia/idp-binding-site-prediction/data/biolip/biolip_rna_clustered_test.csv
+
+  # DisProt IDP annotations (all binding types)
+  disprot:
+    filtered_dir:  /home/malekia/idp-binding-site-prediction/data/filtered
+    sequences_dir: /home/malekia/idp-binding-site-prediction/data/uniprot_sequences
+    training_dir:  /home/malekia/idp-binding-site-prediction/data/training
+
+    # Protein binding
+    protein_training_tsv: /home/malekia/idp-binding-site-prediction/data/training/protein_binding_training_data.tsv
+    protein_train_tsv: /home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/protein_binding_train.tsv
+    protein_val_tsv:   /home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/protein_binding_val.tsv
+    protein_test_tsv:  /home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/protein_binding_test.tsv
+
+    # DNA binding
+    dna_training_tsv: /home/malekia/idp-binding-site-prediction/data/training/dna_binding_training_data.tsv
+    dna_train_tsv: /home/malekia/idp-binding-site-prediction/data/biolip/dna_binding_train.tsv
+    dna_val_tsv:   /home/malekia/idp-binding-site-prediction/data/biolip/dna_binding_val.tsv
+    dna_test_tsv:  /home/malekia/idp-binding-site-prediction/data/biolip/dna_binding_test.tsv
+
+    # RNA binding
+    rna_training_tsv: /home/malekia/idp-binding-site-prediction/data/training/rna_binding_training_data.tsv
+    rna_train_tsv: /home/malekia/idp-binding-site-prediction/data/biolip/rna_binding_train.tsv
+    rna_val_tsv:   /home/malekia/idp-binding-site-prediction/data/biolip/rna_binding_val.tsv
+    rna_test_tsv:  /home/malekia/idp-binding-site-prediction/data/biolip/rna_binding_test.tsv
+
+    # Ion binding
+    ion_training_tsv: /home/malekia/idp-binding-site-prediction/data/ion_binding_training_data.tsv
+    ion_train_tsv: /home/malekia/idp-binding-site-prediction/data/ion_binding_train.tsv
+    ion_val_tsv:   /home/malekia/idp-binding-site-prediction/data/ion_binding_val.tsv
+    ion_test_tsv:  /home/malekia/idp-binding-site-prediction/data/ion_binding_test.tsv
+
+  # CAID3 benchmark
+  caid3:
+    binding_fasta:     /home/malekia/idp-binding-site-prediction/data/binding.fasta
+    binding_idr_fasta: /home/malekia/idp-binding-site-prediction/data/binding-idr.fasta
+
+# ---------------------------------------------------------------------------
+# Pre-computed ESM-2 embeddings (.npz files)
+# All written to / read from the same data directory.
+# ---------------------------------------------------------------------------
+embeddings:
+  dir: /home/malekia/idp-binding-site-prediction/data
+
+  # AHoJ-DB (ion)
+  ahojdb_train: ahojdb_train_embeddings.npz
+  ahojdb_val:   ahojdb_val_embeddings.npz
+  ahojdb_test:  ahojdb_test_embeddings.npz
+
+  # ScanNet (protein-protein)
+  scannet_train: scannet_train_embeddings.npz
+  scannet_val:   scannet_val_embeddings.npz
+  scannet_test:  scannet_test_embeddings.npz
+
+  # BioLiP DNA/RNA (combined)
+  biolip_dna_rna_train: biolip_dna_rna_train_embeddings.npz
+  biolip_dna_rna_val:   biolip_dna_rna_val_embeddings.npz
+  biolip_dna_rna_test:  biolip_dna_rna_test_embeddings.npz
+
+  # DisProt protein-protein
+  disprot_protein_train: disprot_train_embeddings.npz
+  disprot_protein_val:   disprot_val_embeddings.npz
+  disprot_protein_test:  disprot_test_embeddings.npz
+
+  # DisProt DNA/RNA (combined)
+  disprot_dna_rna_train: disprot_dna_rna_train_embeddings.npz
+  disprot_dna_rna_val:   disprot_dna_rna_val_embeddings.npz
+  disprot_dna_rna_test:  disprot_dna_rna_test_embeddings.npz
+
+  # DisProt ion
+  disprot_ion_train: disprot_ion_train_embeddings.npz
+  disprot_ion_val:   disprot_ion_val_embeddings.npz
+  disprot_ion_test:  disprot_ion_test_embeddings.npz
+
+# ---------------------------------------------------------------------------
+# Saved model weights (.pt files)
+# ---------------------------------------------------------------------------
+models:
+  dir: /home/malekia/idp-binding-site-prediction/data
+
+  # Phase models
+  protein_phase1: protein_phase1_esm_model.pt
+  protein_phase2: protein_phase2_esm_model.pt
+  protein_phase3: protein_phase3_esm_model.pt
+
+  ion_phase1: ion_phase1_model.pt
+  ion_phase2: ion_phase2_model.pt
+  ion_phase3: ion_phase3_model.pt
+
+  dna_rna_phase1: dna_rna_phase1_model.pt
+  dna_rna_phase2: dna_rna_phase2_model.pt
+  dna_rna_phase3: dna_rna_phase3_model.pt
+
+  # Hybrid IDP-validation models (final / optimized)
+  protein_hybrid:   protein_hybrid_idpval_model.pt
+  ion_hybrid:       ion_hybrid_idpval_model.pt
+  dna_rna_hybrid:   dna_rna_hybrid_idpval_model.pt
+
+  # Multi-task models
+  multitask_unified:  multitask_unified_model.pt
+  multitask_balanced: multitask_balanced_model.pt
+
+# ---------------------------------------------------------------------------
+# MMseqs2 clustering intermediate files
+# ---------------------------------------------------------------------------
+clustering:
+  dir: /home/malekia/idp-binding-site-prediction/data
+  ion_fasta:          ion_sequences.fasta
+  mmseqs_output_dir:  mmseqs_output
+  cluster_splits_json: cluster_splits.json
+
+# ---------------------------------------------------------------------------
+# ESM-2 model settings
+# ---------------------------------------------------------------------------
+esm:
+  model_name: esm2_t33_650M_UR50D
+  repr_layer: 33
+  max_seq_length: 2000
+
+# ---------------------------------------------------------------------------
+# Training hyperparameters (defaults; can be overridden via CLI)
+# ---------------------------------------------------------------------------
+training:
+  batch_size: 512
+  epochs: 15
+  learning_rate: 0.00005
+  weight_decay: 0.001
+  pos_weight_protein: 3.0
+  pos_weight_dna_rna: 3.0
+  pos_weight_ion: 30.0
+
+# ---------------------------------------------------------------------------
+# Output / results
+# ---------------------------------------------------------------------------
+output:
+  results_dir: /home/malekia/idp-binding-site-prediction/results
+  figures_dir: /home/malekia/idp-binding-site-prediction/figures
