@@ -8,6 +8,7 @@ import biotite.structure.io.pdbx as pdbx
 from biotite.structure.io.pdbx import get_structure
 from biotite.structure import get_residues
 import biotite.structure
+from src.utils.config import load_config, get_dataset_path
 
 # Amino acid mapping
 mapping = {

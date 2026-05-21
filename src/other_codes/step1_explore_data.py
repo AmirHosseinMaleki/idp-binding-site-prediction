@@ -5,6 +5,7 @@ Explore ion-binding dataset and check for imbalance
 
 import pandas as pd
 import numpy as np
+from src.utils.config import load_config, get_dataset_path
 
 df = pd.read_csv('final_complete_ion_dataset.csv')
 

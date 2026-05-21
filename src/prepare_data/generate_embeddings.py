@@ -3,6 +3,7 @@ import torch
 import esm
 import numpy as np
 import os
+from src.utils.config import load_config, get_dataset_path, get_model_path
 
 # Load ESM-2 model
 print("Loading ESM-2 model...")

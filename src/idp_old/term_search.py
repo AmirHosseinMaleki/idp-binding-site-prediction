@@ -11,6 +11,7 @@ import requests
 import time
 import os
 from pathlib import Path
+from src.utils.config import load_config, get_dataset_path
 
 def search_disprot_term(term_name, release="2024_12"):
     go_term = term_name.lower()

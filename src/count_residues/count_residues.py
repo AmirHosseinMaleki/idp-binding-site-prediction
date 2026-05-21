@@ -1,5 +1,6 @@
 import numpy as np
 import os
+from src.utils.config import load_config, get_embedding_path
 
 # Define all possible data files
 files = {

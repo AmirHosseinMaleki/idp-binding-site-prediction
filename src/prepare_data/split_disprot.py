@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from src.utils.config import load_config, get_dataset_path
 
 df = pd.read_csv('/home/malekia/idp-binding-site-prediction/data/training/protein_binding_training_data.tsv', sep='\t')
 

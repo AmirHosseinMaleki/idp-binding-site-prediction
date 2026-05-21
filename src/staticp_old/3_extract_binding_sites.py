@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+from src.utils.config import load_config, get_dataset_path
 
 with open('all_ion_directories.txt', 'r') as f:
     ion_dirs = [line.strip() for line in f]

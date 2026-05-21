@@ -1,4 +1,5 @@
 import pandas as pd
+from src.utils.config import load_config, get_dataset_path
 
 # Check Protein binding terms  
 rna_df = pd.read_csv('data/filtered/protein_binding_filtered.tsv', sep='\t')

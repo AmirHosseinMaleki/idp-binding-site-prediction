@@ -7,6 +7,7 @@ import pandas as pd
 import subprocess
 import os
 from pathlib import Path
+from src.utils.config import load_config, get_dataset_path
 
 print("="*60)
 print("Clustering and Filtering ScanNet PPBS")

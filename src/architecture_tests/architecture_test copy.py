@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from sklearn.metrics import roc_auc_score, f1_score, accuracy_score
+from src.utils.config import load_config, get_embedding_path, get_model_path
 import time
 
 BATCH_SIZE = 512

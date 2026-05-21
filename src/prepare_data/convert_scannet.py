@@ -5,6 +5,7 @@ Combines table.csv with labels files to create train/val/test CSV files
 
 import pandas as pd
 import os
+from src.utils.config import load_config, get_dataset_path
 
 def parse_labels_file(label_file):
     """Parse ScanNet label file format"""

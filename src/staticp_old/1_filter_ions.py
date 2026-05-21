@@ -3,6 +3,7 @@
 import csv
 from rdkit import Chem
 from rdkit import RDLogger
+from src.utils.config import load_config, get_dataset_path
 
 RDLogger.DisableLog('rdApp.*')
 

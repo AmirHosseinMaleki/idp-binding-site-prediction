@@ -6,6 +6,7 @@ Reads the annotation file and FASTA files to create labeled datasets
 import pandas as pd
 import biotite.sequence.io.fasta as fasta
 from collections import defaultdict
+from src.utils.config import load_config, get_dataset_path
 
 print("="*60)
 print("Processing BioLiP for DNA/RNA Binding Sites")

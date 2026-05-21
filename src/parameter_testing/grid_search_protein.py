@@ -4,6 +4,7 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 import json
 from datetime import datetime
+from src.utils.config import load_config, get_embedding_path, get_model_path
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 

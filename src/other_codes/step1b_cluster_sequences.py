@@ -11,6 +11,7 @@ import json
 from collections import defaultdict
 import numpy as np
 from sklearn.model_selection import train_test_split
+from src.utils.config import load_config, get_dataset_path
 
 def create_fasta_file(csv_path='final_complete_ion_dataset.csv', 
                       output_path='ion_sequences.fasta'):

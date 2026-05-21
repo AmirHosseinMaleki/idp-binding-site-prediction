@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score
+from src.utils.config import load_config, get_dataset_path, get_model_path
 
 WINDOW_SIZE = 31
 BATCH_SIZE = 512

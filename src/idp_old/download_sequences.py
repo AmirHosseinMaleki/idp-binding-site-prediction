@@ -6,6 +6,7 @@ import pandas as pd
 import requests
 import os
 from pathlib import Path
+from src.utils.config import load_config, get_dataset_path
 
 def download_uniprot_sequence(accession):
     url = f"https://rest.uniprot.org/uniprotkb/{accession}.fasta"

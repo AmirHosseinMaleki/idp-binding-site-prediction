@@ -5,6 +5,7 @@ Step 3: Create train/val/test splits for BioLiP DNA and RNA data
 
 import pandas as pd
 import numpy as np
+from src.utils.config import load_config, get_dataset_path
 
 print("="*60)
 print("Creating Train/Val/Test Splits for BioLiP Data")

@@ -4,6 +4,7 @@ Split DisProt DNA and RNA binding data into train/val/test (70/15/15)
 
 import pandas as pd
 import numpy as np
+from src.utils.config import load_config, get_dataset_path
 
 print("="*60)
 print("Splitting DisProt DNA and RNA Binding Data")

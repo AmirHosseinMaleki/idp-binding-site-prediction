@@ -11,6 +11,7 @@ from torch.utils.data import Dataset, DataLoader
 import pandas as pd
 import json
 from typing import Tuple, Dict, List
+from src.utils.config import load_config, get_dataset_path
 
 class IonBindingDataset(Dataset):
     """Dataset for ion binding site prediction"""

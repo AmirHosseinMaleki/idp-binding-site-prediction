@@ -7,6 +7,7 @@ import subprocess
 import pandas as pd
 from pathlib import Path
 from collections import defaultdict
+from src.utils.config import load_config, get_dataset_path
 
 def create_disprot_combined_fasta():
     """

@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
+from src.utils.config import load_config, get_embedding_path, get_model_path
 
 BATCH_SIZE = 512
 EPOCHS = 15

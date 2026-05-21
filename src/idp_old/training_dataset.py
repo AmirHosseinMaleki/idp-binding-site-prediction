@@ -5,6 +5,7 @@ Create complete training dataset for all proteins
 import pandas as pd
 from pathlib import Path
 import numpy as np
+from src.utils.config import load_config, get_dataset_path
 
 def load_protein_sequence(protein_id, sequences_dir="data/uniprot_sequences"):
     """Load protein sequence from FASTA file"""
