@@ -149,11 +149,10 @@ biotite_venv/
 __pycache__/
 
 # Large data directories
-data/
-cif_files/
-cif_files_*/
-results/
-software/
+data/*
+!data/dna_rna_hybrid_idpval_model.pt
+!data/ion_hybrid_idpval_model.pt
+!data/protein_hybrid_idpval_model.pt
 
 # Data files
 *.csv
