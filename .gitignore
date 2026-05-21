@@ -163,6 +163,8 @@ data/*
 !data/ion_phase2_model.pt
 !data/ion_phase3_model.pt
 
+software/*
+
 # Data files
 *.csv
 src/**/*.txt

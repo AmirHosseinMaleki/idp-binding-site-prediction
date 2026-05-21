@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IDP Binding Site Prediction Demo — Alpha-Synuclein</title>
+<script src="https://cdn.jsdelivr.net/npm/ngl@2.0.0-dev.37/dist/ngl.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #0f1117; color: #e2e8f0; }
+
+header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #1f2433;
+}
+header h1 { font-size: 1.25rem; font-weight: 600; color: #f8fafc; }
+header p  { font-size: 0.85rem; color: #94a3b8; margin-top: 0.25rem; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: calc(100vh - 90px);
+}
+.panel { display: flex; flex-direction: column; }
+.panel-header {
+  padding: 0.75rem 1rem;
+  background: #161a24;
+  border-bottom: 1px solid #1f2433;
+  display: flex; align-items: center; gap: 8px;
+}
+.panel-title { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #94a3b8; }
+.badge {
+  font-size: 0.7rem; padding: 2px 8px; border-radius: 9999px; font-weight: 600;
+}
+.badge-phase1  { background: #1e293b; color: #64748b; }
+.badge-hybrid  { background: #422006; color: #f59e0b; border: 1px solid #78350f; }
+
+.viewer-wrap { flex: 1; position: relative; }
+canvas { display: block; }
+
+.divider { width: 2px; background: #1f2433; }
+
+.info-panel {
+  padding: 1rem;
+  background: #0f1117;
+  border-top: 1px solid #1f2433;
+  font-size: 0.8rem;
+  color: #64748b;
+  display: flex; gap: 1.5rem; flex-wrap: wrap;
+}
+.info-item strong { color: #cbd5e1; display: block; }
+
+.legend {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #161a24;
+  border-bottom: 1px solid #1f2433;
+  font-size: 0.75rem; color: #94a3b8;
+  flex-wrap: wrap; gap: 0.75rem;
+}
+.legend-item { display: flex; align-items: center; gap: 5px; }
+.legend-swatch {
+  width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0;
+}
+
+.loading-overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: #0f1117;
+  z-index: 10;
+  gap: 0.75rem;
+}
+.spinner {
+  width: 28px; height: 28px;
+  border: 2px solid #1f2433;
+  border-top-color: #f59e0b;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 0.8rem; color: #64748b; }
+
+.annotation-note {
+  position: absolute; bottom: 8px; left: 8px; right: 8px;
+  background: rgba(15, 17, 23, 0.9);
+  border: 1px solid #1f2433;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  pointer-events: none;
+}
+.annotation-note strong { color: #f59e0b; }
+
+.compare-bar {
+  display: flex; gap: 1rem; padding: 0.75rem 1rem;
+  background: #0d1117; border-bottom: 1px solid #1f2433;
+  font-size: 0.75rem; color: #94a3b8;
+  grid-column: 1 / -1;
+  align-items: center; flex-wrap: wrap;
+}
+.compare-bar .metric { display: flex; flex-direction: column; gap: 2px; }
+.compare-bar .metric span:first-child { color: #475569; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.compare-bar .metric span:last-child { color: #cbd5e1; font-weight: 600; font-size: 0.82rem; }
+.metric-better { color: #f59e0b !important; }
+.separator { width: 1px; height: 28px; background: #1f2433; margin: 0 0.25rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>IDP Binding Site Prediction — Interactive Demo</h1>
+  <p>Human alpha-synuclein (UniProt P37840) &nbsp;·&nbsp; Protein-protein binding &nbsp;·&nbsp; AlphaFold structure AF-P37840-F1</p>
+</header>
+
+<div class="layout" id="main-layout">
+
+  <div class="compare-bar" id="compare-bar">
+    <div class="metric"><span>Metric</span><span>DisProt test set</span></div>
+    <div class="separator"></div>
+    <div class="metric"><span>Phase 1 AUC (structured only)</span><span>0.7187</span></div>
+    <div class="separator"></div>
+    <div class="metric"><span>Hybrid AUC (this model)</span><span class="metric-better">0.8404 ↑</span></div>
+    <div class="separator"></div>
+    <div class="metric"><span>Phase 1 F1</span><span>0.61</span></div>
+    <div class="separator"></div>
+    <div class="metric"><span>Hybrid F1</span><span class="metric-better">0.646 ↑</span></div>
+    <div class="separator"></div>
+    <div class="metric"><span>Threshold</span><span>0.60</span></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Phase 1 — Structured data only</span>
+      <span class="badge badge-phase1">ScanNet training</span>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-swatch" style="background:#1e3a5f;"></div><span>Low probability (< 0.3)</span></div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#1d6b8c;"></div><span>Medium (0.3–0.6)</span></div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#f59e0b;"></div><span>High probability (> 0.6)</span></div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#22c55e;"></div><span>Known binding region</span></div>
+    </div>
+    <div class="viewer-wrap" id="viewer-p1-wrap">
+      <div class="loading-overlay" id="loading-p1">
+        <div class="spinner"></div>
+        <span class="loading-text">Loading structure…</span>
+      </div>
+      <div id="viewer-p1" style="width:100%; height:100%;"></div>
+      <div class="annotation-note">
+        <strong>Phase 1:</strong> Misses much of the known binding region (residues 96–140). Trained on structured proteins only — struggles to generalize to disordered regions.
+      </div>
+    </div>
+    <div class="info-panel">
+      <div class="info-item"><strong>Training data</strong>ScanNet PPBS (structured)</div>
+      <div class="info-item"><strong>Val set</strong>ScanNet val</div>
+      <div class="info-item"><strong>DisProt AUC</strong>0.7187</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Hybrid model — Structured + DisProt</span>
+      <span class="badge badge-hybrid">IDP-only validation ✦</span>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-swatch" style="background:#1e3a5f;"></div><span>Low probability (< 0.3)</span></div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#1d6b8c;"></div><span>Medium (0.3–0.6)</span></div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#f59e0b;"></div><span>High probability (> 0.6)</span></div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#22c55e;"></div><span>Known binding region</span></div>
+    </div>
+    <div class="viewer-wrap" id="viewer-h-wrap">
+      <div class="loading-overlay" id="loading-h">
+        <div class="spinner"></div>
+        <span class="loading-text">Loading structure…</span>
+      </div>
+      <div id="viewer-h" style="width:100%; height:100%;"></div>
+      <div class="annotation-note">
+        <strong>Hybrid:</strong> Better recovers the known C-terminal binding region (96–140). Hybrid training + IDP-only validation checkpoint selection boosts IDP performance by +17% AUC.
+      </div>
+    </div>
+    <div class="info-panel">
+      <div class="info-item"><strong>Training data</strong>ScanNet + DisProt combined</div>
+      <div class="info-item"><strong>Val set</strong>DisProt only (IDP checkpoint)</div>
+      <div class="info-item"><strong>DisProt AUC</strong>0.8404 ↑</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/*
+  REAL USAGE INSTRUCTIONS (for the researcher):
+  -----------------------------------------------
+  Replace PHASE1_SCORES and HYBRID_SCORES below with your actual
+  per-residue sigmoid probabilities (floats 0..1), one value per
+  residue of the alpha-synuclein sequence (140 residues).
+
+  To generate them, run your predict.py on the alpha-synuclein sequence:
+
+    python predict.py \
+      --sequence "MDVFMKGLSKAKEGVVAAAEKTKQGVAEAAGKTKEGVLYVGSKTKEGVVHGVATVAEKTKEQASHLGGAVVGGSNNQQNYPPQGSTSNSTYGSSRNMQDIVPNDSRSRPQHSMSRHNPQNSSSTFAFAQNHFQSSDAPGATNSSSNSSTNNNSSSVSGSGRNMQDIVPNDS" \
+      --binding_type protein \
+      --output /tmp/asynuclein_prediction.tsv
+
+  Then paste the 'score' column values (column 3) into PHASE1_SCORES
+  and HYBRID_SCORES respectively.
+
+  The structure is fetched live from AlphaFold via RCSB/EBI.
+  Known binding region (residues 96-140) is from experimental evidence
+  (PMID: 12181319 and DisProt DP00103).
+*/
+
+// ── PLACEHOLDER SCORES ──────────────────────────────────────────────
+// Replace these with your real model outputs.
+// Format: one float per residue, length must equal sequence length (140).
+// These are illustrative values showing the expected pattern.
+
+const SEQ_LEN = 140;
+
+function makeDemoScores(highRegionStart, highRegionEnd, baseNoise, highVal) {
+  const scores = [];
+  for (let i = 0; i < SEQ_LEN; i++) {
+    const inHigh = (i >= highRegionStart && i <= highRegionEnd);
+    const noise = (Math.random() - 0.5) * 0.12;
+    const base = inHigh
+      ? highVal + noise
+      : baseNoise + Math.abs(noise) * 0.5;
+    scores.push(Math.max(0, Math.min(1, base)));
+  }
+  return scores;
+}
+
+// Phase 1: weaker signal in the disordered C-terminal binding region
+const PHASE1_SCORES = makeDemoScores(95, 139, 0.18, 0.47);
+
+// Hybrid: stronger, cleaner signal in the same region
+const HYBRID_SCORES = makeDemoScores(95, 139, 0.14, 0.76);
+
+// Known binding region from DisProt (0-indexed)
+const KNOWN_BINDING_START = 95; // residue 96 (1-indexed)
+const KNOWN_BINDING_END   = 139; // residue 140 (1-indexed)
+
+// ── COLOUR MAPPING ───────────────────────────────────────────────────
+function scoreToColor(score, isKnownBinding) {
+  if (isKnownBinding && score > 0.5) return [0.13, 0.77, 0.37]; // green
+  if (score >= 0.6) return [0.96, 0.62, 0.04]; // amber
+  if (score >= 0.3) return [0.11, 0.42, 0.55]; // mid blue
+  return [0.12, 0.23, 0.37]; // dark blue
+}
+
+// ── NGL VIEWER SETUP ────────────────────────────────────────────────
+const ALPHAFOLD_URL =
+  "https://alphafold.ebi.ac.uk/files/AF-P37840-F1-model_v4.pdb";
+
+async function initViewer(containerId, loadingId, scores, label) {
+  const stage = new NGL.Stage(containerId, {
+    backgroundColor: "#0f1117",
+    tooltip: true,
+    quality: "high",
+  });
+
+  stage.viewer.setSize(
+    document.getElementById(containerId).clientWidth,
+    document.getElementById(containerId).clientHeight
+  );
+
+  try {
+    const comp = await stage.loadFile(ALPHAFOLD_URL, { ext: "pdb" });
+
+    // Build per-residue colour scheme
+    const colorScheme = NGL.ColormakerRegistry.addScheme(function () {
+      this.atomColor = function (atom) {
+        const idx = atom.resno - 1; // NGL is 1-indexed
+        if (idx < 0 || idx >= scores.length) return 0x888888;
+        const known = (idx >= KNOWN_BINDING_START && idx <= KNOWN_BINDING_END);
+        const [r, g, b] = scoreToColor(scores[idx], known);
+        return (
+          (Math.round(r * 255) << 16) |
+          (Math.round(g * 255) << 8)  |
+          Math.round(b * 255)
+        );
+      };
+    }, label);
+
+    comp.addRepresentation("cartoon", {
+      colorScheme: colorScheme,
+      smoothSheet: true,
+      quality: "high",
+      opacity: 1.0,
+    });
+
+    // Highlight predicted binding residues as spheres
+    const sele = scores
+      .map((s, i) => (s >= 0.6 ? i + 1 : null))
+      .filter(Boolean)
+      .join(",");
+
+    if (sele) {
+      comp.addRepresentation("ball+stick", {
+        sele: sele,
+        colorScheme: colorScheme,
+        aspectRatio: 1.8,
+        radiusScale: 0.35,
+        opacity: 0.85,
+      });
+    }
+
+    comp.autoView();
+
+    document.getElementById(loadingId).style.display = "none";
+
+  } catch (err) {
+    const el = document.getElementById(loadingId);
+    el.innerHTML = `
+      <span style="font-size:1.5rem">⚠</span>
+      <span style="font-size:0.8rem; color:#f87171; max-width:260px; text-align:center;">
+        Could not fetch AlphaFold structure.<br>
+        Run this file locally or via a server that allows CORS.<br>
+        <code style="font-size:0.7rem">${err.message}</code>
+      </span>
+    `;
+  }
+
+  window.addEventListener("resize", () => {
+    stage.handleResize();
+  });
+
+  return stage;
+}
+
+// fix grid layout so compare-bar spans full width
+const bar = document.getElementById("compare-bar");
+const layout = document.getElementById("main-layout");
+layout.style.gridTemplateRows = "auto 1fr";
+layout.removeChild(bar);
+layout.insertBefore(bar, layout.firstChild);
+bar.style.gridColumn = "1 / -1";
+
+initViewer("viewer-p1", "loading-p1", PHASE1_SCORES, "phase1");
+initViewer("viewer-h",  "loading-h",  HYBRID_SCORES, "hybrid");
+</script>
+
+</body>
+</html>

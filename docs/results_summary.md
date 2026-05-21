@@ -186,6 +186,8 @@ Three training phases were tested for each binding type:
 | Phase 2 | IDP only (DisProt) | DisProt | Baseline on IDP data |
 | Phase 3 (Hybrid) | Structured + DisProt | DisProt only | Research hypothesis |
 
+![Phase comparison bar chart](../figures/phase_comparison.png)
+
 *Exact residue counts per split for each training configuration are in 
 [Task 1 - Dataset Statistics](#task-1-data-collection-and-preprocessing).*
 

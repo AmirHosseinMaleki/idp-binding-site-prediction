@@ -1,42 +1,40 @@
 """
-predict_caid.py — Generate CAID-format binding site predictions
+predict.py — Per-residue binding site prediction on a single protein sequence.
 
 Usage:
-    python predict_caid.py --fasta caid_test.fasta --model_dir /path/to/models/ --output_dir predictions/
+    python predict.py --sequence "MSEQNN..." --binding_type protein --output results/prediction.tsv
+    python predict.py --fasta demo/demo_protein.fasta --binding_type ion --output results/prediction.tsv
 
-Input:
-    FASTA file with protein sequences (DisProt IDs as headers, e.g. >DP00001)
+Arguments:
+    --sequence      Amino acid sequence string (use this OR --fasta)
+    --fasta         Path to a FASTA file (use this OR --sequence)
+    --binding_type  One of: protein, dna_rna, ion
+    --output        Path to write the TSV output (default: prediction.tsv)
+    --model_dir     Directory containing .pt model files (default: data/)
+    --threshold     Override the default decision threshold (optional)
 
-Output:
-    Three .caid files (one per binding type) in the output directory:
-        predictions/binding-protein/YourMethod.caid
-        predictions/binding-dna_rna/YourMethod.caid
-        predictions/binding-ion/YourMethod.caid
-
-CAID format per sequence block:
-    >DP00001
-    1    M    0.234    0
-    2    S    0.891    1
-    ...
-
-Columns: position (1-indexed), residue, score (0-1), binary label (0 or 1)
+Output TSV columns:
+    position    1-indexed residue position
+    residue     amino acid letter
+    score       binding probability (0–1)
+    prediction  binary label at the decision threshold (0 or 1)
 """
 
 import argparse
 import os
 import sys
+
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
-import esm
 
-from src.utils.config import load_config, get_model_path, base_parser
+
 # ─────────────────────────────────────────────────────────────────────────────
-# Model architecture (must match the trained weights exactly)
+# Model — must match trained weights exactly
 # ─────────────────────────────────────────────────────────────────────────────
 
 class BindingNet(nn.Module):
-    """Four-layer MLP operating on 1280-dim ESM-2 embeddings."""
+    """Four-layer MLP on 1280-dim ESM-2 per-residue embeddings."""
     def __init__(self):
         super().__init__()
         self.net = nn.Sequential(
@@ -57,114 +55,116 @@ class BindingNet(nn.Module):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Per-binding-type configuration
+# ─────────────────────────────────────────────────────────────────────────────
+
+BINDING_CONFIG = {
+    "protein": {
+        "model_file": "protein_hybrid_idpval_model.pt",
+        "threshold":  0.60,
+        "description": "Protein-protein binding",
+    },
+    "dna_rna": {
+        "model_file": "dna_rna_hybrid_idpval_model.pt",
+        "threshold":  0.40,
+        "description": "DNA/RNA binding",
+    },
+    "ion": {
+        "model_file": "ion_hybrid_idpval_model.pt",
+        "threshold":  0.15,
+        "description": "Ion binding",
+    },
+}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # FASTA reader
 # ─────────────────────────────────────────────────────────────────────────────
 
-def read_fasta(fasta_path):
-    """
-    Returns a list of (header, sequence) tuples.
-    Header is the raw line without '>'.
-    """
-    sequences = []
-    current_header = None
-    current_seq = []
-
-    with open(fasta_path, "r") as f:
+def read_fasta(path):
+    """Return (header, sequence) for the first entry in a FASTA file."""
+    header, seq_lines = None, []
+    with open(path) as f:
         for line in f:
             line = line.strip()
             if not line:
                 continue
             if line.startswith(">"):
-                if current_header is not None:
-                    sequences.append((current_header, "".join(current_seq)))
-                current_header = line[1:]  # strip '>'
-                current_seq = []
+                if header is not None:
+                    break          # only read the first entry
+                header = line[1:]
             else:
-                current_seq.append(line)
-
-    if current_header is not None:
-        sequences.append((current_header, "".join(current_seq)))
-
-    return sequences
+                seq_lines.append(line)
+    if header is None:
+        raise ValueError(f"No FASTA entries found in {path}")
+    return header, "".join(seq_lines)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ESM-2 embedding
 # ─────────────────────────────────────────────────────────────────────────────
 
-def load_esm2(device):
-    """Load ESM-2 650M model and batch converter."""
-    print("Loading ESM-2 model (esm2_t33_650M_UR50D)...")
-    esm_model, alphabet = esm.pretrained.esm2_t33_650M_UR50D()
-    batch_converter = alphabet.get_batch_converter()
-    esm_model.eval()
-    esm_model = esm_model.to(device)
-    print(f"  ESM-2 loaded on {device}")
-    return esm_model, batch_converter
-
-
-def embed_sequence(sequence, esm_model, batch_converter, device, max_len=2000):
+def embed_sequence(sequence, device, max_len=2000):
     """
-    Returns per-residue embeddings as a numpy array of shape (L, 1280).
-    Returns None if the sequence is too long.
+    Generate per-residue ESM-2 embeddings.
+    Returns numpy array of shape (L, 1280).
     """
+    try:
+        import esm as esm_lib
+    except ImportError:
+        print("ERROR: the 'esm' package is not installed.")
+        print("Install it with:  pip install fair-esm")
+        sys.exit(1)
+
     if len(sequence) > max_len:
-        return None
+        raise ValueError(
+            f"Sequence length {len(sequence)} exceeds maximum {max_len}. "
+            "Longer sequences are skipped during training and are not supported."
+        )
+
+    print("Loading ESM-2 model (esm2_t33_650M_UR50D)...")
+    esm_model, alphabet = esm_lib.pretrained.esm2_t33_650M_UR50D()
+    batch_converter = alphabet.get_batch_converter()
+    esm_model.eval().to(device)
+    print(f"  ESM-2 loaded on {device}")
 
     data = [("protein", sequence)]
     with torch.no_grad():
         _, _, tokens = batch_converter(data)
         tokens = tokens.to(device)
         results = esm_model(tokens, repr_layers=[33])
-        # Shape: (1, L+2, 1280) → strip BOS/EOS → (L, 1280)
+        # Strip BOS and EOS tokens → shape (L, 1280)
         embeddings = results["representations"][33][0, 1:-1, :].cpu().numpy()
-    torch.cuda.empty_cache()
-    return embeddings
+
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+    return embeddings.astype(np.float32)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Prediction
 # ─────────────────────────────────────────────────────────────────────────────
 
-def predict_binding(embeddings, model, threshold, device, batch_size=2048):
+def predict(embeddings, model, threshold, device, batch_size=2048):
     """
     Run embeddings through BindingNet in batches.
-    Returns (scores, binary_labels) as numpy arrays of shape (L,).
+    Returns (scores, binary_predictions) as numpy arrays of shape (L,).
     """
     model.eval()
-    all_scores = []
-
+    scores_list = []
     emb_tensor = torch.tensor(embeddings, dtype=torch.float32)
-    n = len(emb_tensor)
 
     with torch.no_grad():
-        for start in range(0, n, batch_size):
+        for start in range(0, len(emb_tensor), batch_size):
             batch = emb_tensor[start : start + batch_size].to(device)
             logits = model(batch)
             probs = torch.sigmoid(logits).cpu().numpy()
-            all_scores.append(probs)
+            scores_list.append(probs)
 
-    scores = np.concatenate(all_scores)
+    scores = np.concatenate(scores_list)
     binary = (scores >= threshold).astype(int)
     return scores, binary
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# CAID output writer
-# ─────────────────────────────────────────────────────────────────────────────
-
-def write_caid_block(f, header, sequence, scores, binary_labels):
-    """
-    Write one protein block in CAID format to an already-open file.
-
-    >header
-    1    M    0.234    0
-    2    S    0.891    1
-    ...
-    """
-    f.write(f">{header}\n")
-    for pos, (aa, score, label) in enumerate(zip(sequence, scores, binary_labels), start=1):
-        f.write(f"{pos}\t{aa}\t{score:.3f}\t{label}\n")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -173,160 +173,104 @@ def write_caid_block(f, header, sequence, scores, binary_labels):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate CAID-format binding site predictions for all three binding types."
+        description="Predict per-residue binding sites for a single protein sequence.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument(
+        "--sequence", type=str,
+        help="Amino acid sequence string.",
+    )
+    input_group.add_argument(
+        "--fasta", type=str,
+        help="Path to a FASTA file (first entry is used).",
+    )
+
+    parser.add_argument(
+        "--binding_type", required=True,
+        choices=["protein", "dna_rna", "ion"],
+        help="Binding type to predict: protein, dna_rna, or ion.",
     )
     parser.add_argument(
-        "--fasta",
-        required=True,
-        help="Path to input FASTA file with protein sequences.",
+        "--output", default="prediction.tsv",
+        help="Output TSV file path (default: prediction.tsv).",
     )
     parser.add_argument(
-        "--model_dir",
-        required=True,
-        help=(
-            "Directory containing the three model weight files:\n"
-            "  protein_hybrid_idpval_model.pt\n"
-            "  dna_rna_hybrid_idpval_model.pt\n"
-            "  ion_hybrid_idpval_model.pt"
-        ),
+        "--model_dir", default="data",
+        help="Directory containing model .pt files (default: data/).",
     )
     parser.add_argument(
-        "--output_dir",
-        default="predictions",
-        help="Directory where CAID output files will be written (default: predictions/).",
+        "--threshold", type=float, default=None,
+        help="Override the default decision threshold (optional).",
     )
-    parser.add_argument(
-        "--method_name",
-        default="HybridIDP",
-        help="Name used for output .caid filenames (default: HybridIDP).",
-    )
-    parser.add_argument(
-        "--max_len",
-        type=int,
-        default=2000,
-        help="Maximum sequence length; longer sequences are skipped (default: 2000).",
-    )
-    # Thresholds from results_summary.md (optimised on DisProt validation set)
-    parser.add_argument("--threshold_protein", type=float, default=0.60)
-    parser.add_argument("--threshold_dna_rna",  type=float, default=0.40)
-    parser.add_argument("--threshold_ion",       type=float, default=0.15)
 
     args = parser.parse_args()
 
+    # ── Get sequence ──────────────────────────────────────────────────────────
+    if args.fasta:
+        print(f"Reading sequence from: {args.fasta}")
+        protein_id, sequence = read_fasta(args.fasta)
+        print(f"  Protein: {protein_id}")
+    else:
+        sequence = args.sequence
+        protein_id = "input_sequence"
+
+    sequence = sequence.upper().strip()
+    print(f"  Length:  {len(sequence)} residues")
+
+    # ── Binding type config ───────────────────────────────────────────────────
+    cfg = BINDING_CONFIG[args.binding_type]
+    threshold = args.threshold if args.threshold is not None else cfg["threshold"]
+
+    model_path = os.path.join(args.model_dir, cfg["model_file"])
+    if not os.path.exists(model_path):
+        print(f"\nERROR: model file not found: {model_path}")
+        print(f"Expected: {model_path}")
+        print("Make sure model weights are in the data/ directory.")
+        sys.exit(1)
+
+    print(f"\nBinding type : {cfg['description']}")
+    print(f"Model file   : {model_path}")
+    print(f"Threshold    : {threshold}")
+
     # ── Device ────────────────────────────────────────────────────────────────
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
+    print(f"Device       : {device}")
 
-    # ── Read FASTA ────────────────────────────────────────────────────────────
-    print(f"\nReading sequences from: {args.fasta}")
-    sequences = read_fasta(args.fasta)
-    print(f"  Found {len(sequences)} sequences")
+    # ── Embed ─────────────────────────────────────────────────────────────────
+    print("\nGenerating ESM-2 embeddings...")
+    try:
+        embeddings = embed_sequence(sequence, device)
+    except ValueError as e:
+        print(f"\nERROR: {e}")
+        sys.exit(1)
+    print(f"  Embeddings shape: {embeddings.shape}")
 
-    # ── Load ESM-2 ────────────────────────────────────────────────────────────
-    esm_model, batch_converter = load_esm2(device)
+    # ── Load model ────────────────────────────────────────────────────────────
+    print("\nLoading binding model...")
+    model = BindingNet().to(device)
+    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.eval()
+    print("  Model loaded.")
 
-    # ── Load binding models ───────────────────────────────────────────────────
-    models_config = [
-        {
-            "name":       "protein",
-            "filename":   "protein_hybrid_idpval_model.pt",
-            "threshold":  args.threshold_protein,
-            "subdir":     "binding-protein",
-        },
-        {
-            "name":       "dna_rna",
-            "filename":   "dna_rna_hybrid_idpval_model.pt",
-            "threshold":  args.threshold_dna_rna,
-            "subdir":     "binding-dna_rna",
-        },
-        {
-            "name":       "ion",
-            "filename":   "ion_hybrid_idpval_model.pt",
-            "threshold":  args.threshold_ion,
-            "subdir":     "binding-ion",
-        },
-    ]
+    # ── Predict ───────────────────────────────────────────────────────────────
+    print("\nRunning prediction...")
+    scores, binary = predict(embeddings, model, threshold, device)
 
-    print("\nLoading binding models...")
-    for cfg in models_config:
-        path = os.path.join(args.model_dir, cfg["filename"])
-        if not os.path.exists(path):
-            print(f"  ERROR: model file not found: {path}")
-            sys.exit(1)
-        model = BindingNet().to(device)
-        model.load_state_dict(torch.load(path, map_location=device))
-        model.eval()
-        cfg["model"] = model
-        print(f"  Loaded {cfg['name']} model  (threshold={cfg['threshold']})")
+    n_binding = binary.sum()
+    print(f"  Predicted binding residues: {n_binding} / {len(sequence)} ({100*n_binding/len(sequence):.1f}%)")
 
-    # ── Create output directories and open output files ───────────────────────
-    os.makedirs(args.output_dir, exist_ok=True)
-    output_files = {}
-    for cfg in models_config:
-        subdir = os.path.join(args.output_dir, cfg["subdir"])
-        os.makedirs(subdir, exist_ok=True)
-        out_path = os.path.join(subdir, f"{args.method_name}.caid")
-        output_files[cfg["name"]] = open(out_path, "w")
-        print(f"  Output: {out_path}")
+    # ── Write output ──────────────────────────────────────────────────────────
+    os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
 
-    # ── Process sequences ─────────────────────────────────────────────────────
-    print(f"\nProcessing {len(sequences)} sequences...")
-    skipped = 0
+    with open(args.output, "w") as f:
+        f.write("position\tresidue\tscore\tprediction\n")
+        for pos, (aa, score, label) in enumerate(zip(sequence, scores, binary), start=1):
+            f.write(f"{pos}\t{aa}\t{score:.4f}\t{label}\n")
 
-    for i, (header, sequence) in enumerate(sequences, start=1):
-        print(f"  [{i}/{len(sequences)}] {header}  (len={len(sequence)})", end="")
-
-        if len(sequence) > args.max_len:
-            print(f"  — SKIPPED (>{args.max_len} residues)")
-            skipped += 1
-            continue
-
-        # Generate ESM-2 embeddings
-        try:
-            embeddings = embed_sequence(
-                sequence, esm_model, batch_converter, device, args.max_len
-            )
-        except RuntimeError as e:
-            if "out of memory" in str(e).lower():
-                torch.cuda.empty_cache()
-                print(f"  — SKIPPED (GPU OOM)")
-                skipped += 1
-                continue
-            raise
-
-        if embeddings is None:
-            print(f"  — SKIPPED (embedding failed)")
-            skipped += 1
-            continue
-
-        # Run all three models and write output
-        for cfg in models_config:
-            scores, binary = predict_binding(
-                embeddings, cfg["model"], cfg["threshold"], device
-            )
-            write_caid_block(
-                output_files[cfg["name"]], header, sequence, scores, binary
-            )
-
-        # Count predicted binding residues for a quick sanity check
-        prot_scores, prot_bin = predict_binding(
-            embeddings, models_config[0]["model"],
-            models_config[0]["threshold"], device
-        )
-        print(f"  — done  (protein: {prot_bin.sum()}/{len(sequence)} predicted binding)")
-
-    # ── Close files ───────────────────────────────────────────────────────────
-    for f in output_files.values():
-        f.close()
-
-    print(f"\nDone.")
-    print(f"  Processed: {len(sequences) - skipped}")
-    print(f"  Skipped:   {skipped}")
-    print(f"\nOutput files:")
-    for cfg in models_config:
-        subdir = os.path.join(args.output_dir, cfg["subdir"])
-        out_path = os.path.join(subdir, f"{args.method_name}.caid")
-        print(f"  {out_path}")
+    print(f"\nOutput written to: {args.output}")
+    print("Columns: position, residue, score (0-1), prediction (0/1 at threshold)")
 
 
 if __name__ == "__main__":
