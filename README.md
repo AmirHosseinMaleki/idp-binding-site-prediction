@@ -52,7 +52,7 @@ python predict.py \
 
 This sequence is human alpha-synuclein (UniProt P37840), a well-characterized IDP. The model predicts per-residue binding probabilities.
 
-> **Note:** Pre-trained model weights and a full visualization example are provided in [demo/](demo/).
+> **Note:** Pre-trained model weights and a full visualization example are provided in > **Live demo:** [View 3D binding site prediction](https://amirhosseinmaleki.github.io/idp-binding-site-prediction/demo/binding_site_demo.html).
 
 ## Documentation
 
