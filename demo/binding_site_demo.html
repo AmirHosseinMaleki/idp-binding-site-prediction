@@ -1,346 +1,363 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IDP Binding Site Prediction Demo — Alpha-Synuclein</title>
-<script src="https://cdn.jsdelivr.net/npm/ngl@2.0.0-dev.37/dist/ngl.js"></script>
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: system-ui, -apple-system, sans-serif; background: #0f1117; color: #e2e8f0; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IDP Binding Site Prediction — 1WVL Chain A</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ngl/2.0.0-dev.36/ngl.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #1a1a2e; color: #e0e0e0;
+      display: flex; flex-direction: column; height: 100vh;
+    }
 
-header {
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid #1f2433;
-}
-header h1 { font-size: 1.25rem; font-weight: 600; color: #f8fafc; }
-header p  { font-size: 0.85rem; color: #94a3b8; margin-top: 0.25rem; }
+    header {
+      padding: 14px 24px;
+      background: #16213e;
+      border-bottom: 1px solid #0f3460;
+      display: flex; align-items: center; gap: 16px;
+    }
+    header h1 { font-size: 1.1rem; font-weight: 600; color: #e0e0e0; }
+    header p  { font-size: 0.82rem; color: #9ca3af; }
 
-.layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  height: calc(100vh - 90px);
-}
-.panel { display: flex; flex-direction: column; }
-.panel-header {
-  padding: 0.75rem 1rem;
-  background: #161a24;
-  border-bottom: 1px solid #1f2433;
-  display: flex; align-items: center; gap: 8px;
-}
-.panel-title { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #94a3b8; }
-.badge {
-  font-size: 0.7rem; padding: 2px 8px; border-radius: 9999px; font-weight: 600;
-}
-.badge-phase1  { background: #1e293b; color: #64748b; }
-.badge-hybrid  { background: #422006; color: #f59e0b; border: 1px solid #78350f; }
+    .main {
+      display: flex; flex: 1; overflow: hidden;
+    }
 
-.viewer-wrap { flex: 1; position: relative; }
-canvas { display: block; }
+    /* ── 3D viewer ── */
+    #viewport {
+      flex: 1;
+      background: #0d1117;
+    }
 
-.divider { width: 2px; background: #1f2433; }
+    /* ── Right panel ── */
+    .panel {
+      width: 320px; min-width: 280px;
+      background: #16213e;
+      border-left: 1px solid #0f3460;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
 
-.info-panel {
-  padding: 1rem;
-  background: #0f1117;
-  border-top: 1px solid #1f2433;
-  font-size: 0.8rem;
-  color: #64748b;
-  display: flex; gap: 1.5rem; flex-wrap: wrap;
-}
-.info-item strong { color: #cbd5e1; display: block; }
+    .panel-section {
+      padding: 14px 16px;
+      border-bottom: 1px solid #0f3460;
+    }
+    .panel-section h3 {
+      font-size: 0.78rem; text-transform: uppercase;
+      letter-spacing: 0.08em; color: #6b7280; margin-bottom: 10px;
+    }
 
-.legend {
-  display: flex; align-items: center; gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: #161a24;
-  border-bottom: 1px solid #1f2433;
-  font-size: 0.75rem; color: #94a3b8;
-  flex-wrap: wrap; gap: 0.75rem;
-}
-.legend-item { display: flex; align-items: center; gap: 5px; }
-.legend-swatch {
-  width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0;
-}
+    /* Stats grid */
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat  {
+      background: #0f3460; border-radius: 6px; padding: 8px 10px;
+    }
+    .stat-val  { font-size: 1.3rem; font-weight: 700; color: #60a5fa; }
+    .stat-label{ font-size: 0.72rem; color: #9ca3af; margin-top: 2px; }
 
-.loading-overlay {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  background: #0f1117;
-  z-index: 10;
-  gap: 0.75rem;
-}
-.spinner {
-  width: 28px; height: 28px;
-  border: 2px solid #1f2433;
-  border-top-color: #f59e0b;
-  border-radius: 50%;
-  animation: spin 0.9s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.loading-text { font-size: 0.8rem; color: #64748b; }
+    /* Legend */
+    .legend { display: flex; flex-direction: column; gap: 6px; }
+    .legend-row { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
+    .swatch { width: 16px; height: 16px; border-radius: 3px; flex-shrink: 0; }
 
-.annotation-note {
-  position: absolute; bottom: 8px; left: 8px; right: 8px;
-  background: rgba(15, 17, 23, 0.9);
-  border: 1px solid #1f2433;
-  border-radius: 6px;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.75rem;
-  color: #94a3b8;
-  pointer-events: none;
-}
-.annotation-note strong { color: #f59e0b; }
+    /* Controls */
+    .controls { display: flex; flex-direction: column; gap: 8px; }
+    label { font-size: 0.8rem; color: #d1d5db; }
+    select, button {
+      width: 100%; padding: 7px 10px; border-radius: 5px;
+      border: 1px solid #0f3460; background: #0d1117;
+      color: #e0e0e0; font-size: 0.82rem; cursor: pointer;
+    }
+    button { background: #0f3460; font-weight: 600; }
+    button:hover { background: #1e4d8c; }
 
-.compare-bar {
-  display: flex; gap: 1rem; padding: 0.75rem 1rem;
-  background: #0d1117; border-bottom: 1px solid #1f2433;
-  font-size: 0.75rem; color: #94a3b8;
-  grid-column: 1 / -1;
-  align-items: center; flex-wrap: wrap;
-}
-.compare-bar .metric { display: flex; flex-direction: column; gap: 2px; }
-.compare-bar .metric span:first-child { color: #475569; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; }
-.compare-bar .metric span:last-child { color: #cbd5e1; font-weight: 600; font-size: 0.82rem; }
-.metric-better { color: #f59e0b !important; }
-.separator { width: 1px; height: 28px; background: #1f2433; margin: 0 0.25rem; }
-</style>
+    /* Score bar chart */
+    .score-chart { flex: 1; overflow-y: auto; padding: 10px 16px; }
+    .score-chart h3 {
+      font-size: 0.78rem; text-transform: uppercase;
+      letter-spacing: 0.08em; color: #6b7280; margin-bottom: 8px;
+      position: sticky; top: 0; background: #16213e; padding: 4px 0;
+    }
+    .bar-row {
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 2px; cursor: pointer;
+    }
+    .bar-row:hover { opacity: 0.8; }
+    .bar-pos  { width: 28px; text-align: right; font-size: 0.7rem; color: #6b7280; flex-shrink:0; }
+    .bar-aa   { width: 14px; font-size: 0.7rem; color: #9ca3af; flex-shrink:0; }
+    .bar-bg   { flex: 1; height: 10px; background: #0d1117; border-radius: 2px; overflow:hidden; }
+    .bar-fill { height: 100%; border-radius: 2px; }
+    .bar-score{ width: 36px; text-align: right; font-size: 0.68rem; color: #6b7280; flex-shrink:0; }
+    .bar-true { width: 8px; height: 8px; border-radius: 50%; flex-shrink:0; }
+
+    /* Threshold slider */
+    input[type=range] { width: 100%; accent-color: #60a5fa; }
+    .slider-row {
+      display: flex; justify-content: space-between;
+      font-size: 0.75rem; color: #9ca3af; margin-top: 2px;
+    }
+
+    .loading {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      color: #60a5fa; font-size: 0.9rem; pointer-events: none;
+    }
+  </style>
 </head>
 <body>
 
 <header>
-  <h1>IDP Binding Site Prediction — Interactive Demo</h1>
-  <p>Human alpha-synuclein (UniProt P37840) &nbsp;·&nbsp; Protein-protein binding &nbsp;·&nbsp; AlphaFold structure AF-P37840-F1</p>
+  <div>
+    <h1>IDP Binding Site Prediction — 1WVL (Chain A)</h1>
+    <p>Hybrid MLP model · ESM-2 embeddings · Protein-protein binding</p>
+  </div>
 </header>
 
-<div class="layout" id="main-layout">
-
-  <div class="compare-bar" id="compare-bar">
-    <div class="metric"><span>Metric</span><span>DisProt test set</span></div>
-    <div class="separator"></div>
-    <div class="metric"><span>Phase 1 AUC (structured only)</span><span>0.7187</span></div>
-    <div class="separator"></div>
-    <div class="metric"><span>Hybrid AUC (this model)</span><span class="metric-better">0.8404 ↑</span></div>
-    <div class="separator"></div>
-    <div class="metric"><span>Phase 1 F1</span><span>0.61</span></div>
-    <div class="separator"></div>
-    <div class="metric"><span>Hybrid F1</span><span class="metric-better">0.646 ↑</span></div>
-    <div class="separator"></div>
-    <div class="metric"><span>Threshold</span><span>0.60</span></div>
+<div class="main">
+  <div id="viewport">
+    <div class="loading" id="loading">Loading structure from RCSB...</div>
   </div>
 
   <div class="panel">
-    <div class="panel-header">
-      <span class="panel-title">Phase 1 — Structured data only</span>
-      <span class="badge badge-phase1">ScanNet training</span>
-    </div>
-    <div class="legend">
-      <div class="legend-item"><div class="legend-swatch" style="background:#1e3a5f;"></div><span>Low probability (< 0.3)</span></div>
-      <div class="legend-item"><div class="legend-swatch" style="background:#1d6b8c;"></div><span>Medium (0.3–0.6)</span></div>
-      <div class="legend-item"><div class="legend-swatch" style="background:#f59e0b;"></div><span>High probability (> 0.6)</span></div>
-      <div class="legend-item"><div class="legend-swatch" style="background:#22c55e;"></div><span>Known binding region</span></div>
-    </div>
-    <div class="viewer-wrap" id="viewer-p1-wrap">
-      <div class="loading-overlay" id="loading-p1">
-        <div class="spinner"></div>
-        <span class="loading-text">Loading structure…</span>
-      </div>
-      <div id="viewer-p1" style="width:100%; height:100%;"></div>
-      <div class="annotation-note">
-        <strong>Phase 1:</strong> Misses much of the known binding region (residues 96–140). Trained on structured proteins only — struggles to generalize to disordered regions.
-      </div>
-    </div>
-    <div class="info-panel">
-      <div class="info-item"><strong>Training data</strong>ScanNet PPBS (structured)</div>
-      <div class="info-item"><strong>Val set</strong>ScanNet val</div>
-      <div class="info-item"><strong>DisProt AUC</strong>0.7187</div>
-    </div>
-  </div>
 
-  <div class="divider"></div>
-
-  <div class="panel">
-    <div class="panel-header">
-      <span class="panel-title">Hybrid model — Structured + DisProt</span>
-      <span class="badge badge-hybrid">IDP-only validation ✦</span>
-    </div>
-    <div class="legend">
-      <div class="legend-item"><div class="legend-swatch" style="background:#1e3a5f;"></div><span>Low probability (< 0.3)</span></div>
-      <div class="legend-item"><div class="legend-swatch" style="background:#1d6b8c;"></div><span>Medium (0.3–0.6)</span></div>
-      <div class="legend-item"><div class="legend-swatch" style="background:#f59e0b;"></div><span>High probability (> 0.6)</span></div>
-      <div class="legend-item"><div class="legend-swatch" style="background:#22c55e;"></div><span>Known binding region</span></div>
-    </div>
-    <div class="viewer-wrap" id="viewer-h-wrap">
-      <div class="loading-overlay" id="loading-h">
-        <div class="spinner"></div>
-        <span class="loading-text">Loading structure…</span>
+    <!-- Stats -->
+    <div class="panel-section">
+      <h3>Summary</h3>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-val" id="stat-len">80</div>
+          <div class="stat-label">Residues</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" id="stat-pred">43</div>
+          <div class="stat-label">Predicted binding</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">24</div>
+          <div class="stat-label">True binding</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" id="stat-pct">54%</div>
+          <div class="stat-label">% predicted</div>
+        </div>
       </div>
-      <div id="viewer-h" style="width:100%; height:100%;"></div>
-      <div class="annotation-note">
-        <strong>Hybrid:</strong> Better recovers the known C-terminal binding region (96–140). Hybrid training + IDP-only validation checkpoint selection boosts IDP performance by +17% AUC.
+    </div>
+
+    <!-- Legend -->
+    <div class="panel-section">
+      <h3>Color Scale — Binding Probability</h3>
+      <div class="legend">
+        <div class="legend-row">
+          <div class="swatch" style="background:#1e3a5f"></div>
+          <span>0.0 – 0.2 · Very low</span>
+        </div>
+        <div class="legend-row">
+          <div class="swatch" style="background:#2563eb"></div>
+          <span>0.2 – 0.4 · Low</span>
+        </div>
+        <div class="legend-row">
+          <div class="swatch" style="background:#f59e0b"></div>
+          <span>0.4 – 0.6 · Moderate</span>
+        </div>
+        <div class="legend-row">
+          <div class="swatch" style="background:#ef4444"></div>
+          <span>0.6 – 1.0 · High (predicted binding)</span>
+        </div>
+        <div class="legend-row">
+          <div class="swatch" style="background:#22c55e; border:2px solid #16a34a"></div>
+          <span>● True binding residue</span>
+        </div>
       </div>
     </div>
-    <div class="info-panel">
-      <div class="info-item"><strong>Training data</strong>ScanNet + DisProt combined</div>
-      <div class="info-item"><strong>Val set</strong>DisProt only (IDP checkpoint)</div>
-      <div class="info-item"><strong>DisProt AUC</strong>0.8404 ↑</div>
-    </div>
-  </div>
 
-</div>
+    <!-- Threshold -->
+    <div class="panel-section">
+      <h3>Decision Threshold</h3>
+      <input type="range" id="threshold-slider" min="0" max="1" step="0.01" value="0.60">
+      <div class="slider-row">
+        <span>0.0</span>
+        <span id="threshold-val" style="color:#60a5fa; font-weight:600;">0.60</span>
+        <span>1.0</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="panel-section">
+      <div class="controls">
+        <label>Representation
+          <select id="repr-select">
+            <option value="cartoon">Cartoon</option>
+            <option value="ball+stick">Ball + Stick</option>
+            <option value="surface">Surface</option>
+            <option value="spacefill">Spacefill</option>
+          </select>
+        </label>
+        <button id="btn-reset">Reset View</button>
+      </div>
+    </div>
+
+    <!-- Per-residue score bars -->
+    <div class="score-chart">
+      <h3>Per-Residue Scores <span style="color:#22c55e;font-size:0.7em;">● true binding</span></h3>
+      <div id="bar-container"></div>
+    </div>
+
+  </div><!-- /panel -->
+</div><!-- /main -->
 
 <script>
-/*
-  REAL USAGE INSTRUCTIONS (for the researcher):
-  -----------------------------------------------
-  Replace PHASE1_SCORES and HYBRID_SCORES below with your actual
-  per-residue sigmoid probabilities (floats 0..1), one value per
-  residue of the alpha-synuclein sequence (140 residues).
+// ── Data ──────────────────────────────────────────────────────────────────────
+const SCORES     = [0.5697, 0.4902, 0.3860, 0.3553, 0.5956, 0.4169, 0.6979, 0.7272, 0.4913, 0.3360, 0.4748, 0.4455, 0.4151, 0.4918, 0.5776, 0.2834, 0.3903, 0.2772, 0.1924, 0.5232, 0.7530, 0.7640, 0.8202, 0.8467, 0.7302, 0.6979, 0.6148, 0.5265, 0.7418, 0.1817, 0.7317, 0.7455, 0.7867, 0.7898, 0.4420, 0.3343, 0.3940, 0.4827, 0.7075, 0.7758, 0.5502, 0.8386, 0.6590, 0.7782, 0.3697, 0.5793, 0.3191, 0.5803, 0.4288, 0.4080, 0.7436, 0.2694, 0.6062, 0.5437, 0.3325, 0.4322, 0.6609, 0.7905, 0.4419, 0.6390, 0.8320, 0.8288, 0.7309, 0.8304, 0.8673, 0.6501, 0.5896, 0.8912, 0.8695, 0.7710, 0.8361, 0.8973, 0.7714, 0.7422, 0.8607, 0.8699, 0.7948, 0.8634, 0.8242, 0.6676];
+const PREDICTED  = [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+const TRUE_LABELS= [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1];
+const RESIDUES   = ['M', 'V', 'K', 'V', 'K', 'F', 'K', 'Y', 'K', 'G', 'E', 'E', 'K', 'E', 'V', 'D', 'T', 'S', 'K', 'I', 'K', 'K', 'V', 'W', 'R', 'V', 'G', 'K', 'M', 'V', 'S', 'F', 'T', 'Y', 'D', 'D', 'N', 'G', 'K', 'T', 'G', 'R', 'G', 'A', 'V', 'S', 'E', 'K', 'D', 'A', 'P', 'K', 'E', 'L', 'L', 'D', 'M', 'L', 'A', 'R', 'A', 'E', 'R', 'E', 'K', 'K', 'G', 'V', 'L', 'K', 'K', 'L', 'R', 'A', 'V', 'E', 'N', 'E', 'L', 'H'];
+const PDB_ID     = "1WVL";
+const CHAIN_ID   = "A";
+const SEQ_LEN    = SCORES.length;
 
-  To generate them, run your predict.py on the alpha-synuclein sequence:
+let currentThreshold = 0.60;
+let stage, structureComponent, currentRepr = "cartoon";
 
-    python predict.py \
-      --sequence "MDVFMKGLSKAKEGVVAAAEKTKQGVAEAAGKTKEGVLYVGSKTKEGVVHGVATVAEKTKEQASHLGGAVVGGSNNQQNYPPQGSTSNSTYGSSRNMQDIVPNDSRSRPQHSMSRHNPQNSSSTFAFAQNHFQSSDAPGATNSSSNSSTNNNSSSVSGSGRNMQDIVPNDS" \
-      --binding_type protein \
-      --output /tmp/asynuclein_prediction.tsv
-
-  Then paste the 'score' column values (column 3) into PHASE1_SCORES
-  and HYBRID_SCORES respectively.
-
-  The structure is fetched live from AlphaFold via RCSB/EBI.
-  Known binding region (residues 96-140) is from experimental evidence
-  (PMID: 12181319 and DisProt DP00103).
-*/
-
-// ── PLACEHOLDER SCORES ──────────────────────────────────────────────
-// Replace these with your real model outputs.
-// Format: one float per residue, length must equal sequence length (140).
-// These are illustrative values showing the expected pattern.
-
-const SEQ_LEN = 140;
-
-function makeDemoScores(highRegionStart, highRegionEnd, baseNoise, highVal) {
-  const scores = [];
-  for (let i = 0; i < SEQ_LEN; i++) {
-    const inHigh = (i >= highRegionStart && i <= highRegionEnd);
-    const noise = (Math.random() - 0.5) * 0.12;
-    const base = inHigh
-      ? highVal + noise
-      : baseNoise + Math.abs(noise) * 0.5;
-    scores.push(Math.max(0, Math.min(1, base)));
-  }
-  return scores;
+// ── Color helpers ─────────────────────────────────────────────────────────────
+function scoreToColor(score) {
+  if (score < 0.2) return [0.12, 0.23, 0.37];
+  if (score < 0.4) return [0.15, 0.39, 0.92];
+  if (score < 0.6) return [0.96, 0.62, 0.04];
+  return [0.94, 0.27, 0.27];
 }
 
-// Phase 1: weaker signal in the disordered C-terminal binding region
-const PHASE1_SCORES = makeDemoScores(95, 139, 0.18, 0.47);
-
-// Hybrid: stronger, cleaner signal in the same region
-const HYBRID_SCORES = makeDemoScores(95, 139, 0.14, 0.76);
-
-// Known binding region from DisProt (0-indexed)
-const KNOWN_BINDING_START = 95; // residue 96 (1-indexed)
-const KNOWN_BINDING_END   = 139; // residue 140 (1-indexed)
-
-// ── COLOUR MAPPING ───────────────────────────────────────────────────
-function scoreToColor(score, isKnownBinding) {
-  if (isKnownBinding && score > 0.5) return [0.13, 0.77, 0.37]; // green
-  if (score >= 0.6) return [0.96, 0.62, 0.04]; // amber
-  if (score >= 0.3) return [0.11, 0.42, 0.55]; // mid blue
-  return [0.12, 0.23, 0.37]; // dark blue
+function scoreToHex(score) {
+  const [r, g, b] = scoreToColor(score);
+  const h = x => Math.round(x * 255).toString(16).padStart(2, "0");
+  return "#" + h(r) + h(g) + h(b);
 }
 
-// ── NGL VIEWER SETUP ────────────────────────────────────────────────
-const ALPHAFOLD_URL =
-  "https://alphafold.ebi.ac.uk/files/AF-P37840-F1-model_v4.pdb";
-
-async function initViewer(containerId, loadingId, scores, label) {
-  const stage = new NGL.Stage(containerId, {
-    backgroundColor: "#0f1117",
-    tooltip: true,
-    quality: "high",
+// ── NGL color scheme ──────────────────────────────────────────────────────────
+function makeColorScheme(threshold) {
+  return NGL.ColormakerRegistry.addScheme(function(params) {
+    this.atomColor = function(atom) {
+      if (atom.chainname !== CHAIN_ID) return 0x333333;
+      const idx = atom.resno - 1;   // 0-indexed
+      if (idx < 0 || idx >= SEQ_LEN) return 0x555555;
+      const s = SCORES[idx];
+      const [r, g, b] = scoreToColor(s);
+      return (Math.round(r*255) << 16) | (Math.round(g*255) << 8) | Math.round(b*255);
+    };
   });
+}
 
-  stage.viewer.setSize(
-    document.getElementById(containerId).clientWidth,
-    document.getElementById(containerId).clientHeight
-  );
+// ── Build score bar chart ─────────────────────────────────────────────────────
+function buildBars() {
+  const container = document.getElementById("bar-container");
+  container.innerHTML = "";
+  SCORES.forEach((score, i) => {
+    const row = document.createElement("div");
+    row.className = "bar-row";
+    row.title = `Position ${i+1} (${RESIDUES[i]}) — score: ${score.toFixed(3)}`;
 
-  try {
-    const comp = await stage.loadFile(ALPHAFOLD_URL, { ext: "pdb" });
+    const isTrue = TRUE_LABELS.length > i && TRUE_LABELS[i] === 1;
+    const dot = `<div class="bar-true" style="background:${isTrue ? "#22c55e" : "transparent"}"></div>`;
 
-    // Build per-residue colour scheme
-    const colorScheme = NGL.ColormakerRegistry.addScheme(function () {
-      this.atomColor = function (atom) {
-        const idx = atom.resno - 1; // NGL is 1-indexed
-        if (idx < 0 || idx >= scores.length) return 0x888888;
-        const known = (idx >= KNOWN_BINDING_START && idx <= KNOWN_BINDING_END);
-        const [r, g, b] = scoreToColor(scores[idx], known);
-        return (
-          (Math.round(r * 255) << 16) |
-          (Math.round(g * 255) << 8)  |
-          Math.round(b * 255)
+    row.innerHTML = `
+      <div class="bar-pos">${i+1}</div>
+      <div class="bar-aa">${RESIDUES[i]}</div>
+      <div class="bar-bg">
+        <div class="bar-fill" style="width:${score*100}%;background:${scoreToHex(score)}"></div>
+      </div>
+      <div class="bar-score">${score.toFixed(2)}</div>
+      ${dot}
+    `;
+
+    // Click to focus residue in viewer
+    row.addEventListener("click", () => {
+      if (structureComponent) {
+        const sele = `${i+1}:${CHAIN_ID}`;
+        stage.animationControls.zoomMove(
+          structureComponent.getCenter(sele), 15, 500
         );
-      };
-    }, label);
-
-    comp.addRepresentation("cartoon", {
-      colorScheme: colorScheme,
-      smoothSheet: true,
-      quality: "high",
-      opacity: 1.0,
+      }
     });
 
-    // Highlight predicted binding residues as spheres
-    const sele = scores
-      .map((s, i) => (s >= 0.6 ? i + 1 : null))
-      .filter(Boolean)
-      .join(",");
-
-    if (sele) {
-      comp.addRepresentation("ball+stick", {
-        sele: sele,
-        colorScheme: colorScheme,
-        aspectRatio: 1.8,
-        radiusScale: 0.35,
-        opacity: 0.85,
-      });
-    }
-
-    comp.autoView();
-
-    document.getElementById(loadingId).style.display = "none";
-
-  } catch (err) {
-    const el = document.getElementById(loadingId);
-    el.innerHTML = `
-      <span style="font-size:1.5rem">⚠</span>
-      <span style="font-size:0.8rem; color:#f87171; max-width:260px; text-align:center;">
-        Could not fetch AlphaFold structure.<br>
-        Run this file locally or via a server that allows CORS.<br>
-        <code style="font-size:0.7rem">${err.message}</code>
-      </span>
-    `;
-  }
-
-  window.addEventListener("resize", () => {
-    stage.handleResize();
+    container.appendChild(row);
   });
-
-  return stage;
 }
 
-// fix grid layout so compare-bar spans full width
-const bar = document.getElementById("compare-bar");
-const layout = document.getElementById("main-layout");
-layout.style.gridTemplateRows = "auto 1fr";
-layout.removeChild(bar);
-layout.insertBefore(bar, layout.firstChild);
-bar.style.gridColumn = "1 / -1";
+// ── Apply coloring to structure ───────────────────────────────────────────────
+function applyColoring(threshold) {
+  if (!structureComponent) return;
+  structureComponent.removeAllRepresentations();
+  const scheme = makeColorScheme(threshold);
 
-initViewer("viewer-p1", "loading-p1", PHASE1_SCORES, "phase1");
-initViewer("viewer-h",  "loading-h",  HYBRID_SCORES, "hybrid");
+  structureComponent.addRepresentation(currentRepr, {
+    colorScheme: scheme,
+    opacity: 1.0,
+    roughness: 0.5,
+  });
+
+  // Show other chains as faint grey cartoon
+  structureComponent.addRepresentation("cartoon", {
+    sele: `not :${CHAIN_ID}`,
+    color: "#222233",
+    opacity: 0.25,
+  });
+}
+
+// ── Update stats ──────────────────────────────────────────────────────────────
+function updateStats(threshold) {
+  const nBinding = SCORES.filter(s => s >= threshold).length;
+  document.getElementById("stat-pred").textContent = nBinding;
+  document.getElementById("stat-pct").textContent  = Math.round(nBinding/SEQ_LEN*100) + "%";
+}
+
+// ── Initialise NGL ────────────────────────────────────────────────────────────
+window.addEventListener("load", () => {
+  stage = new NGL.Stage("viewport", {
+    backgroundColor: "#0d1117",
+    quality: "medium",
+  });
+
+  stage.loadFile("https://files.rcsb.org/download/1WVL.pdb", { defaultRepresentation: false })
+    .then(comp => {
+      structureComponent = comp;
+      document.getElementById("loading").style.display = "none";
+      applyColoring(currentThreshold);
+      stage.autoView();
+    })
+    .catch(err => {
+      document.getElementById("loading").textContent =
+        "Could not load structure from RCSB. Check your internet connection.";
+      console.error(err);
+    });
+
+  buildBars();
+
+  // Threshold slider
+  const slider = document.getElementById("threshold-slider");
+  const valLabel = document.getElementById("threshold-val");
+  slider.addEventListener("input", () => {
+    currentThreshold = parseFloat(slider.value);
+    valLabel.textContent = currentThreshold.toFixed(2);
+    applyColoring(currentThreshold);
+    updateStats(currentThreshold);
+  });
+
+  // Representation selector
+  document.getElementById("repr-select").addEventListener("change", e => {
+    currentRepr = e.target.value;
+    applyColoring(currentThreshold);
+  });
+
+  // Reset view
+  document.getElementById("btn-reset").addEventListener("click", () => {
+    stage.autoView();
+  });
+
+  // Resize handler
+  window.addEventListener("resize", () => stage.handleResize());
+});
 </script>
-
 </body>
 </html>

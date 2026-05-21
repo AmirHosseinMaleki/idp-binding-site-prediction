@@ -2,7 +2,7 @@
 Run this from your repo root:
     python prepare_demo.py
 
-It reads your DisProt protein binding test set, picks a good demo protein,
+It reads your DisProt protein binding test set, picks a demo protein,
 and writes:
     demo/demo_protein.fasta
     demo/demo_protein_labels.tsv   <- ground truth for reference
@@ -94,17 +94,3 @@ with open(labels_path, "w") as f:
     for i, (aa, lbl) in enumerate(zip(sequence, label_list), start=1):
         f.write(f"{i}\t{aa}\t{lbl}\n")
 print(f" Wrote {labels_path}  (ground truth - binding=1, non-binding=0)")
-
-# ── Print the predict.py command to run next ──────────────────────────────────
-print(f"""
-── Next step ────────────────────────────────────────────────────────────────
-Run this command from the repo root to generate the expected output file:
-
-    python predict.py \\
-        --sequence "{sequence}" \\
-        --binding_type protein \\
-        --output demo/expected_output_protein.tsv
-
-Then commit demo/ to the repo.
-─────────────────────────────────────────────────────────────────────────────
-""")

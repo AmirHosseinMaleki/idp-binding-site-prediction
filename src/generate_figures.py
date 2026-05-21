@@ -119,5 +119,4 @@ ax.annotate("Best architecture", xy=(0 - w/2, 0.8428), xytext=(-0.35, 0.875),
 plt.tight_layout()
 plt.savefig("/home/malekia/idp-binding-site-prediction/figures/architecture_comparison.png", dpi=150, bbox_inches="tight")
 plt.close()
-print("✓  figures/architecture_comparison.png")
-print("\nDone. Copy both PNGs into your repo's figures/ folder.")
+print("  figures/architecture_comparison.png")
