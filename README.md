@@ -12,7 +12,7 @@ This research project focuses on predicting protein-protein, DNA/RNA, and ion bi
 - [Data](#data)
 - [Code Architecture](#code-architecture)
 - [Execution Guide](#execution-guide)
-- [License](#license)
+- [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 
 ## Overview

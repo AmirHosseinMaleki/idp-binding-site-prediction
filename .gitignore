@@ -153,6 +153,15 @@ data/*
 !data/dna_rna_hybrid_idpval_model.pt
 !data/ion_hybrid_idpval_model.pt
 !data/protein_hybrid_idpval_model.pt
+!data/dna_rna_phase1_model.pt
+!data/dna_rna_phase2_model.pt
+!data/dna_rna_phase3_model.pt
+!data/protein_phase1_esm_model.pt
+!data/protein_phase2_esm_model.pt
+!data/protein_phase3_esm_model.pt
+!data/ion_phase1_model.pt
+!data/ion_phase2_model.pt
+!data/ion_phase3_model.pt
 
 # Data files
 *.csv
