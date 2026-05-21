@@ -1,5 +1,7 @@
 # IDP Binding Site Prediction
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 This research project focuses on predicting protein-protein, DNA/RNA, and ion binding sites within intrinsically disordered protein (IDP) regions. IDPs are flexible protein segments that lack a fixed three-dimensional structure but play crucial roles in cellular interactions, including signaling, regulation, and molecular recognition. The system uses deep learning to identify amino acid residues that participate in binding interactions, addressing a critical gap in understanding IDP functionality.
 
 ## Table of Contents
@@ -12,7 +14,6 @@ This research project focuses on predicting protein-protein, DNA/RNA, and ion bi
 - [Data](#data)
 - [Code Architecture](#code-architecture)
 - [Execution Guide](#execution-guide)
-- [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 
 ## Overview
@@ -99,7 +100,7 @@ This sequence is human alpha-synuclein (UniProt P37840), a well-characterized ID
 
 1. Follow the [Environment Setup](#environment-setup) above.
 
-2. Download the pre-trained model weights (see [Data](#data) for links).
+2. Pre-trained model weights are already included in `data/` — no download needed.
 
 3. Run a prediction on a protein sequence:
 ```bash
@@ -207,7 +208,7 @@ python src/parameter_testing/grid_search_protein.py
 ### Notes
 - Ensure data is prepared and embeddings generated before running any training script. See [docs/data_preparation.md](docs/data_preparation.md).
 - All training scripts are designed for a SLURM cluster. Each `.py` script has a corresponding `.sh` submission file. Adjust paths if running locally.
-- Models are saved as `.pt` files in the `data/` directory. Pre-trained weights can be downloaded from [link to be added].
+- Models are saved as `.pt` files in the `data/` directory. Pre-trained weights are included in the `data/` directory of this repository.
 - GPU is required for efficient training; adjust batch sizes for memory constraints.
 
 ## License
