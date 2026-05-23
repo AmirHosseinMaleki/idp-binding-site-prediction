@@ -7,6 +7,7 @@ from src.utils.config import load_config, get_embedding_path, get_model_path
 
 BATCH_SIZE = 512
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cfg = load_config()
 
 class EmbeddingDataset(Dataset):
     def __init__(self, npz_file):
@@ -84,8 +85,12 @@ print("="*60)
 
 # Load test data
 print("\nLoading test data...")
-ahojdb_test = EmbeddingDataset('ahojdb_test_embeddings.npz')
-disprot_test = EmbeddingDataset('disprot_ion_test_embeddings.npz')
+
+ahojdb_test = EmbeddingDataset(get_embedding_path(cfg, "ahojdb_test"))
+disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_ion_test"))
+
+# ahojdb_test = EmbeddingDataset('ahojdb_test_embeddings.npz')
+# disprot_test = EmbeddingDataset('disprot_ion_test_embeddings.npz')
 
 ahojdb_loader = DataLoader(ahojdb_test, batch_size=BATCH_SIZE, num_workers=2)
 disprot_loader = DataLoader(disprot_test, batch_size=BATCH_SIZE, num_workers=2)
@@ -94,10 +99,15 @@ print(f"  AHoJ-DB test: {len(ahojdb_test):,} residues")
 print(f"  DisProt test: {len(disprot_test):,} residues")
 
 # Evaluate all 3 phases
+# models = [
+#     ('Phase 1 (AHoJ-DB only)', 'ion_phase1_model.pt'),
+#     ('Phase 2 (DisProt only)', 'ion_phase2_model.pt'),
+#     ('Phase 3 (Hybrid)', 'ion_phase3_model.pt')
+# ]
 models = [
-    ('Phase 1 (AHoJ-DB only)', 'ion_phase1_model.pt'),
-    ('Phase 2 (DisProt only)', 'ion_phase2_model.pt'),
-    ('Phase 3 (Hybrid)', 'ion_phase3_model.pt')
+    ('Phase 1 (AHoJ-DB only)', get_model_path(cfg, "ion_phase1")),
+    ('Phase 2 (DisProt only)', get_model_path(cfg, "ion_phase2")),
+    ('Phase 3 (Hybrid)', get_model_path(cfg, "ion_phase3"))
 ]
 
 results_summary = []

@@ -8,6 +8,7 @@ import os
 
 BATCH_SIZE = 512
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cfg = load_config()
 
 class EmbeddingDataset(Dataset):
     def __init__(self, npz_file):
@@ -85,8 +86,11 @@ print("="*60)
 
 # Load test data
 print("\nLoading test data...")
-biolip_test = EmbeddingDataset('biolip_dna_rna_test_embeddings.npz')
-disprot_test = EmbeddingDataset('disprot_dna_rna_test_embeddings.npz')
+# biolip_test = EmbeddingDataset('biolip_dna_rna_test_embeddings.npz')
+# disprot_test = EmbeddingDataset('disprot_dna_rna_test_embeddings.npz')
+
+biolip_test = EmbeddingDataset(get_embedding_path(cfg, "biolip_dna_rna_test"))
+disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_dna_rna_test"))
 
 biolip_loader = DataLoader(biolip_test, batch_size=BATCH_SIZE, num_workers=2)
 disprot_loader = DataLoader(disprot_test, batch_size=BATCH_SIZE, num_workers=2)
@@ -95,9 +99,14 @@ print(f"  BioLip test: {len(biolip_test):,} residues")
 print(f"  DisProt test: {len(disprot_test):,} residues")
 
 # Evaluate both models
+# models_to_evaluate = [
+#     ('Original Phase 3 (Hybrid Val)', 'dna_rna_phase3_model.pt'),
+#     ('IDP-Only Validation', 'dna_rna_hybrid_idpval_model.pt')
+# ]
+
 models_to_evaluate = [
-    ('Original Phase 3 (Hybrid Val)', 'dna_rna_phase3_model.pt'),
-    ('IDP-Only Validation', 'dna_rna_hybrid_idpval_model.pt')
+    ('Original Phase 3 (Hybrid Val)', get_model_path(cfg, "dna_rna_phase3")),
+    ('IDP-Only Validation', get_model_path(cfg, "dna_rna_hybrid"))
 ]
 
 results = {}

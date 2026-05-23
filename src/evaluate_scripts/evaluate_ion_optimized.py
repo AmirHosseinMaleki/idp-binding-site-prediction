@@ -7,6 +7,7 @@ from src.utils.config import load_config, get_embedding_path, get_model_path
 
 BATCH_SIZE = 512
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cfg = load_config()
 
 class EmbeddingDataset(Dataset):
     def __init__(self, npz_file):
@@ -86,15 +87,19 @@ print("="*60)
 
 # Load test data
 print("\nLoading test data...")
-ahojdb_test = EmbeddingDataset('ahojdb_test_embeddings.npz')
-disprot_test = EmbeddingDataset('disprot_ion_test_embeddings.npz')
+# ahojdb_test = EmbeddingDataset('ahojdb_test_embeddings.npz')
+# disprot_test = EmbeddingDataset('disprot_ion_test_embeddings.npz')
+
+ahojdb_test = EmbeddingDataset(get_embedding_path(cfg, "ahojdb_test"))
+disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_ion_test"))
 
 ahojdb_loader = DataLoader(ahojdb_test, batch_size=BATCH_SIZE, num_workers=2)
 disprot_loader = DataLoader(disprot_test, batch_size=BATCH_SIZE, num_workers=2)
 
 # Load model
 model = BindingNet(input_size=1280).to(DEVICE)
-model.load_state_dict(torch.load('ion_hybrid_idpval_model.pt', map_location=DEVICE))
+# model.load_state_dict(torch.load('ion_hybrid_idpval_model.pt', map_location=DEVICE))
+model.load_state_dict(torch.load(get_model_path(cfg, "ion_hybrid"), map_location=DEVICE))
 
 print(f"\nUsing device: {DEVICE}")
 print("\nModel: ion_hybrid_idpval_model.pt (Optimized - epoch 1, val loss 9.3526)")

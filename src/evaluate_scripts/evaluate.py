@@ -9,6 +9,7 @@ from src.utils.config import load_config, get_dataset_path, get_model_path
 WINDOW_SIZE = 31
 BATCH_SIZE = 512
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cfg = load_config()
 
 AA_VOCAB = 'ACDEFGHIKLMNPQRSTVWYX'
 AA_TO_IDX = {aa: i for i, aa in enumerate(AA_VOCAB)}

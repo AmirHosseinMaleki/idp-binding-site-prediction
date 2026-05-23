@@ -145,41 +145,49 @@ print("="*60)
 print("Generating ESM-2 Embeddings for Ion Binding Datasets")
 print("="*60)
 
-BASE_PATH = '/home/malekia/idp-binding-site-prediction/data/'
+# BASE_PATH = '/home/malekia/idp-binding-site-prediction/data/'
+cfg = load_config()
 
-# AHoJ-DB datasets
-print("\n" + "="*60)
-print("AHoJ-DB (Structured Ion Binding)")
-print("="*60)
-generate_embeddings_for_csv(
-    BASE_PATH + 'train_data.csv',
-    'ahojdb_train_embeddings.npz'
-)
-generate_embeddings_for_csv(
-    BASE_PATH + 'val_data.csv',
-    'ahojdb_val_embeddings.npz'
-)
-generate_embeddings_for_csv(
-    BASE_PATH + 'test_data.csv',
-    'ahojdb_test_embeddings.npz'
-)
+# # AHoJ-DB datasets
+# print("\n" + "="*60)
+# print("AHoJ-DB (Structured Ion Binding)")
+# print("="*60)
+# generate_embeddings_for_csv(
+#     BASE_PATH + 'train_data.csv',
+#     'ahojdb_train_embeddings.npz'
+# )
+# generate_embeddings_for_csv(
+#     BASE_PATH + 'val_data.csv',
+#     'ahojdb_val_embeddings.npz'
+# )
+# generate_embeddings_for_csv(
+#     BASE_PATH + 'test_data.csv',
+#     'ahojdb_test_embeddings.npz'
+# )
 
-# DisProt ion binding datasets
-print("\n" + "="*60)
-print("DisProt (IDP Ion Binding)")
-print("="*60)
-generate_embeddings_for_tsv(
-    BASE_PATH + 'ion_binding_train.tsv',
-    'disprot_ion_train_embeddings.npz'
-)
-generate_embeddings_for_tsv(
-    BASE_PATH + 'ion_binding_val.tsv',
-    'disprot_ion_val_embeddings.npz'
-)
-generate_embeddings_for_tsv(
-    BASE_PATH + 'ion_binding_test.tsv',
-    'disprot_ion_test_embeddings.npz'
-)
+# # DisProt ion binding datasets
+# print("\n" + "="*60)
+# print("DisProt (IDP Ion Binding)")
+# print("="*60)
+# generate_embeddings_for_tsv(
+#     BASE_PATH + 'ion_binding_train.tsv',
+#     'disprot_ion_train_embeddings.npz'
+# )
+# generate_embeddings_for_tsv(
+#     BASE_PATH + 'ion_binding_val.tsv',
+#     'disprot_ion_val_embeddings.npz'
+# )
+# generate_embeddings_for_tsv(
+#     BASE_PATH + 'ion_binding_test.tsv',
+#     'disprot_ion_test_embeddings.npz'
+# )
+
+generate_embeddings_for_csv(get_dataset_path(cfg, "ahojdb", "train_clustered_csv"), get_embedding_path(cfg, "ahojdb_train"))
+generate_embeddings_for_csv(get_dataset_path(cfg, "ahojdb", "val_clustered_csv"),   get_embedding_path(cfg, "ahojdb_val"))
+generate_embeddings_for_csv(get_dataset_path(cfg, "ahojdb", "test_clustered_csv"),  get_embedding_path(cfg, "ahojdb_test"))
+generate_embeddings_for_tsv(get_dataset_path(cfg, "disprot", "ion_train_tsv"),      get_embedding_path(cfg, "disprot_ion_train"))
+generate_embeddings_for_tsv(get_dataset_path(cfg, "disprot", "ion_val_tsv"),        get_embedding_path(cfg, "disprot_ion_val"))
+generate_embeddings_for_tsv(get_dataset_path(cfg, "disprot", "ion_test_tsv"),       get_embedding_path(cfg, "disprot_ion_test"))
 
 print("\n" + "="*60)
 print("All ion binding embeddings generated successfully!")

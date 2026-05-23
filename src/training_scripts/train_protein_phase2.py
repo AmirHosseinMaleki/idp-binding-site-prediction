@@ -10,6 +10,7 @@ BATCH_SIZE = 512
 EPOCHS = 10
 LR = 0.0001
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cfg = load_config()
 
 AA_VOCAB = 'ACDEFGHIKLMNPQRSTVWYX'
 AA_TO_IDX = {aa: i for i, aa in enumerate(AA_VOCAB)}
@@ -114,8 +115,10 @@ print("="*60)
 print("Phase 2: Training on DisProt (IDP Protein-Protein)")
 print("="*60)
 
-train_data = BindingDataset('/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/protein_binding_train.tsv')
-val_data = BindingDataset('/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/protein_binding_val.tsv')
+# train_data = BindingDataset('/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/protein_binding_train.tsv')
+# val_data = BindingDataset('/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/protein_binding_val.tsv')
+train_data = BindingDataset(get_dataset_path(cfg, "disprot", "protein_train_tsv"))
+val_data   = BindingDataset(get_dataset_path(cfg, "disprot", "protein_val_tsv"))
 
 train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
 val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, num_workers=2)
@@ -151,7 +154,8 @@ for epoch in range(EPOCHS):
     
     if val_loss < best_loss:
         best_loss = val_loss
-        torch.save(model.state_dict(), 'protein_phase2_model.pt')
+        # torch.save(model.state_dict(), 'protein_phase2_model.pt')
+        torch.save(model.state_dict(), get_model_path(cfg, "protein_window_phase2"))
         print("  Saved best model")
 
 print(f"\n{'='*60}")

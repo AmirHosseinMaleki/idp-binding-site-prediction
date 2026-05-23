@@ -7,7 +7,11 @@ import pandas as pd
 import numpy as np
 from src.utils.config import load_config, get_dataset_path
 
-df = pd.read_csv('final_complete_ion_dataset.csv')
+cfg = load_config()
+
+# df = pd.read_csv('final_complete_ion_dataset.csv')
+df = pd.read_csv(get_dataset_path(cfg, "ahojdb", "test_clustered_csv"))
+
 
 print("=" * 60)
 print("ION-BINDING DATASET EXPLORATION")

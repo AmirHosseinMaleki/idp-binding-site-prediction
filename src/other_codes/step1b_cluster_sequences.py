@@ -283,6 +283,8 @@ def main():
     print("CLUSTER-AWARE DATA SPLITTING PIPELINE")
     print("="*60)
     
+    cfg = load_config()
+    
     num_sequences = create_fasta_file()
     
     cluster_file = run_mmseqs_clustering(

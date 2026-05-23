@@ -69,8 +69,13 @@ print("="*60)
 print("DNA/RNA Phase 2: Training on DisProt Only (IDPs)")
 print("="*60)
 
-train_data = EmbeddingDataset('disprot_dna_rna_train_embeddings.npz')
-val_data = EmbeddingDataset('disprot_dna_rna_val_embeddings.npz')
+cfg = load_config()
+
+# train_data = EmbeddingDataset('disprot_dna_rna_train_embeddings.npz')
+# val_data = EmbeddingDataset('disprot_dna_rna_val_embeddings.npz')
+
+train_data = EmbeddingDataset(get_embedding_path(cfg, "disprot_dna_rna_train"))
+val_data = EmbeddingDataset(get_embedding_path(cfg, "disprot_dna_rna_val"))
 
 train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
 val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, num_workers=2)
@@ -102,7 +107,8 @@ for epoch in range(EPOCHS):
     
     if val_loss < best_loss:
         best_loss = val_loss
-        torch.save(model.state_dict(), 'dna_rna_phase2_model.pt')
+        # torch.save(model.state_dict(), 'dna_rna_phase2_model.pt')
+        torch.save(model.state_dict(), get_model_path(cfg, "dna_rna_phase2"))
         print("    Saved best model")
 
 print(f"\n{'='*60}")

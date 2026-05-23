@@ -10,6 +10,7 @@ BATCH_SIZE = 512
 EPOCHS = 10
 LR = 0.0001
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cfg = load_config()
 
 class EmbeddingDataset(Dataset):
     def __init__(self, npz_file):

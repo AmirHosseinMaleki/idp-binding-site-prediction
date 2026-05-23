@@ -72,9 +72,14 @@ print("="*60)
 print("Phase 1: Training with ESM-2 Embeddings (ScanNet)")
 print("="*60)
 
+cfg = load_config()
+
 # Load precomputed embeddings
-train_data = EmbeddingDataset('scannet_train_embeddings.npz')
-val_data = EmbeddingDataset('scannet_val_embeddings.npz')
+# train_data = EmbeddingDataset('scannet_train_embeddings.npz')
+# val_data = EmbeddingDataset('scannet_val_embeddings.npz')
+
+train_data = EmbeddingDataset(get_embedding_path(cfg, "scannet_train"))
+val_data = EmbeddingDataset(get_embedding_path(cfg, "scannet_val"))
 
 train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
 val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, num_workers=2)
@@ -110,11 +115,13 @@ for epoch in range(EPOCHS):
     
     if val_loss < best_loss:
         best_loss = val_loss
-        torch.save(model.state_dict(), 'protein_phase1_esm_model.pt')
+        # torch.save(model.state_dict(), 'protein_phase1_esm_model.pt')
+        torch.save(model.state_dict(), get_model_path(cfg, "protein_phase1"))
         print("    Saved best model")
 
 print(f"\n{'='*60}")
 print(f"Training complete!")
 print(f"Best val loss: {best_loss:.4f}")
-print(f"Model saved: protein_phase1_esm_model.pt")
+# print(f"Model saved: protein_phase1_esm_model.pt")
+print(f"Model saved: {get_model_path(cfg, 'protein_phase1')}")
 print(f"{'='*60}")

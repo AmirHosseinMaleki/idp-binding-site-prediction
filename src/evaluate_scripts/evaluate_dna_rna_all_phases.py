@@ -7,6 +7,7 @@ from src.utils.config import load_config, get_embedding_path, get_model_path
 
 BATCH_SIZE = 512
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cfg = load_config()
 
 class EmbeddingDataset(Dataset):
     def __init__(self, npz_file):
@@ -84,8 +85,10 @@ print("="*60)
 
 # Load test data
 print("\nLoading test data...")
-biolip_test = EmbeddingDataset('biolip_dna_rna_test_embeddings.npz')
-disprot_test = EmbeddingDataset('disprot_dna_rna_test_embeddings.npz')
+# biolip_test = EmbeddingDataset('biolip_dna_rna_test_embeddings.npz')
+# disprot_test = EmbeddingDataset('disprot_dna_rna_test_embeddings.npz')
+biolip_test = EmbeddingDataset(get_embedding_path(cfg, "biolip_dna_rna_test"))
+disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_dna_rna_test"))
 
 biolip_loader = DataLoader(biolip_test, batch_size=BATCH_SIZE, num_workers=2)
 disprot_loader = DataLoader(disprot_test, batch_size=BATCH_SIZE, num_workers=2)
@@ -94,10 +97,15 @@ print(f"  BioLip test: {len(biolip_test):,} residues")
 print(f"  DisProt test: {len(disprot_test):,} residues")
 
 # Evaluate all 3 phases
+# models = [
+#     ('Phase 1 (BioLip only)', 'dna_rna_phase1_model.pt'),
+#     ('Phase 2 (DisProt only)', 'dna_rna_phase2_model.pt'),
+#     ('Phase 3 (Hybrid)', 'dna_rna_phase3_model.pt')
+# ]
 models = [
-    ('Phase 1 (BioLip only)', 'dna_rna_phase1_model.pt'),
-    ('Phase 2 (DisProt only)', 'dna_rna_phase2_model.pt'),
-    ('Phase 3 (Hybrid)', 'dna_rna_phase3_model.pt')
+    ('Phase 1 (BioLip only)', get_model_path(cfg, "dna_rna_phase1")),
+    ('Phase 2 (DisProt only)', get_model_path(cfg, "dna_rna_phase2")),
+    ('Phase 3 (Hybrid)', get_model_path(cfg, "dna_rna_phase3"))
 ]
 
 results_summary = []

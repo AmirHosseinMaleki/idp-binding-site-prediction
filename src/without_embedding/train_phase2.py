@@ -14,6 +14,8 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 AA_VOCAB = 'ACDEFGHIKLMNPQRSTVWYX'
 AA_TO_IDX = {aa: i for i, aa in enumerate(AA_VOCAB)}
 
+cfg = load_config()
+
 class BindingDataset(Dataset):
     def __init__(self, tsv_file):
         df = pd.read_csv(tsv_file, sep='\t')
@@ -91,8 +93,11 @@ def validate(model, loader, criterion):
             total_loss += loss.item()
     return total_loss / len(loader)
 
-train_data = BindingDataset('ion_binding_train.tsv')
-val_data = BindingDataset('ion_binding_val.tsv')
+# train_data = BindingDataset('ion_binding_train.tsv')
+# val_data = BindingDataset('ion_binding_val.tsv')
+
+train_data = BindingDataset(get_dataset_path(cfg, "disprot", "ion_train_tsv"))
+val_data   = BindingDataset(get_dataset_path(cfg, "disprot", "ion_val_tsv"))
 
 train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
 val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, num_workers=2)
@@ -120,6 +125,7 @@ for epoch in range(EPOCHS):
     
     if val_loss < best_loss:
         best_loss = val_loss
-        torch.save(model.state_dict(), 'phase2_model.pt')
+        # torch.save(model.state_dict(), 'phase2_model.pt')
+        torch.save(model.state_dict(), get_model_path(cfg, "ion_window_phase2"))
 
 print(f"\nBest val loss: {best_loss:.4f}")

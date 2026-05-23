@@ -7,6 +7,7 @@ from datetime import datetime
 from src.utils.config import load_config, get_embedding_path, get_model_path
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cfg = load_config()
 
 # Define hyperparameter grid
 GRID = {
@@ -159,14 +160,16 @@ print("="*60)
 print("Protein-Protein Binding - Grid Search")
 print("="*60)
 
-print("\nLoading training data:")
-train_data = CombinedDataset([
-    'scannet_train_embeddings.npz',
-    'disprot_train_embeddings.npz'
-])
+# print("\nLoading training data:")
+# train_data = CombinedDataset([
+#     'scannet_train_embeddings.npz',
+#     'disprot_train_embeddings.npz'
+# ])
 
-print("\nLoading validation data (DisProt only):")
-val_data = EmbeddingDataset('disprot_val_embeddings.npz')
+# print("\nLoading validation data (DisProt only):")
+# val_data = EmbeddingDataset('disprot_val_embeddings.npz')
+train_data = CombinedDataset([get_embedding_path(cfg, "scannet_train"), get_embedding_path(cfg, "disprot_protein_train")])
+val_data = EmbeddingDataset(get_embedding_path(cfg, "disprot_protein_val"))
 
 # Generate all configurations
 configs = []

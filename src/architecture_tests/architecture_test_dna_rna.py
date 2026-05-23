@@ -11,6 +11,7 @@ EPOCHS = 20
 LR = 0.00005
 WEIGHT_DECAY = 0.001
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cfg = load_config()
 
 class EmbeddingDataset(Dataset):
     def __init__(self, npz_file):
@@ -275,12 +276,16 @@ print(f"  Weight Decay: {WEIGHT_DECAY}")
 print(f"  Batch Size: {BATCH_SIZE}")
 
 print("\nLoading data...")
-train_data = CombinedDataset([
-    'biolip_dna_rna_train_embeddings.npz',
-    'disprot_dna_rna_train_embeddings.npz'
-])
-val_data = EmbeddingDataset('disprot_dna_rna_val_embeddings.npz')
-test_data = EmbeddingDataset('disprot_dna_rna_test_embeddings.npz')
+# train_data = CombinedDataset([
+#     'biolip_dna_rna_train_embeddings.npz',
+#     'disprot_dna_rna_train_embeddings.npz'
+# ])
+# val_data = EmbeddingDataset('disprot_dna_rna_val_embeddings.npz')
+# test_data = EmbeddingDataset('disprot_dna_rna_test_embeddings.npz')
+
+train_data = CombinedDataset([get_embedding_path(cfg, "biolip_dna_rna_train"), get_embedding_path(cfg, "disprot_dna_rna_train")])
+val_data = EmbeddingDataset(get_embedding_path(cfg, "disprot_dna_rna_val"))
+test_data = EmbeddingDataset(get_embedding_path(cfg, "disprot_dna_rna_test"))
 
 print(f"  Train: {len(train_data):,} samples")
 print(f"  Val: {len(val_data):,} samples (DisProt only)")

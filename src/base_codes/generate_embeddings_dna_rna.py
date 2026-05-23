@@ -162,90 +162,114 @@ print("="*60)
 print("Generating ESM-2 Embeddings for DNA/RNA Datasets")
 print("="*60)
 
-BASE_PATH = '/home/malekia/idp-binding-site-prediction/data/biolip/'
+# BASE_PATH = '/home/malekia/idp-binding-site-prediction/data/biolip/'
 
-# BioLip DNA datasets
-print("\n" + "="*60)
-print("BioLip DNA Datasets")
-print("="*60)
-generate_embeddings_for_csv(
-    BASE_PATH + 'biolip_dna_clustered_train.csv',
-    'biolip_dna_train_embeddings.npz'
-)
-generate_embeddings_for_csv(
-    BASE_PATH + 'biolip_dna_clustered_val.csv',
-    'biolip_dna_val_embeddings.npz'
-)
-generate_embeddings_for_csv(
-    BASE_PATH + 'biolip_dna_clustered_test.csv',
-    'biolip_dna_test_embeddings.npz'
-)
+cfg = load_config()
 
-# BioLip RNA datasets
-print("\n" + "="*60)
-print("BioLip RNA Datasets")
-print("="*60)
-generate_embeddings_for_csv(
-    BASE_PATH + 'biolip_rna_clustered_train.csv',
-    'biolip_rna_train_embeddings.npz'
-)
-generate_embeddings_for_csv(
-    BASE_PATH + 'biolip_rna_clustered_val.csv',
-    'biolip_rna_val_embeddings.npz'
-)
-generate_embeddings_for_csv(
-    BASE_PATH + 'biolip_rna_clustered_test.csv',
-    'biolip_rna_test_embeddings.npz'
-)
+# # BioLip DNA datasets
+# print("\n" + "="*60)
+# print("BioLip DNA Datasets")
+# print("="*60)
+# generate_embeddings_for_csv(
+#     BASE_PATH + 'biolip_dna_clustered_train.csv',
+#     'biolip_dna_train_embeddings.npz'
+# )
+# generate_embeddings_for_csv(
+#     BASE_PATH + 'biolip_dna_clustered_val.csv',
+#     'biolip_dna_val_embeddings.npz'
+# )
+# generate_embeddings_for_csv(
+#     BASE_PATH + 'biolip_dna_clustered_test.csv',
+#     'biolip_dna_test_embeddings.npz'
+# )
 
-# DisProt DNA datasets
-print("\n" + "="*60)
-print("DisProt DNA Datasets")
-print("="*60)
-generate_embeddings_for_tsv(
-    BASE_PATH + 'dna_binding_train.tsv',
-    'disprot_dna_train_embeddings.npz'
-)
-generate_embeddings_for_tsv(
-    BASE_PATH + 'dna_binding_val.tsv',
-    'disprot_dna_val_embeddings.npz'
-)
-generate_embeddings_for_tsv(
-    BASE_PATH + 'dna_binding_test.tsv',
-    'disprot_dna_test_embeddings.npz'
-)
+# # BioLip RNA datasets
+# print("\n" + "="*60)
+# print("BioLip RNA Datasets")
+# print("="*60)
+# generate_embeddings_for_csv(
+#     BASE_PATH + 'biolip_rna_clustered_train.csv',
+#     'biolip_rna_train_embeddings.npz'
+# )
+# generate_embeddings_for_csv(
+#     BASE_PATH + 'biolip_rna_clustered_val.csv',
+#     'biolip_rna_val_embeddings.npz'
+# )
+# generate_embeddings_for_csv(
+#     BASE_PATH + 'biolip_rna_clustered_test.csv',
+#     'biolip_rna_test_embeddings.npz'
+# )
 
-# DisProt RNA datasets
-print("\n" + "="*60)
-print("DisProt RNA Datasets")
-print("="*60)
-generate_embeddings_for_tsv(
-    BASE_PATH + 'rna_binding_train.tsv',
-    'disprot_rna_train_embeddings.npz'
-)
-generate_embeddings_for_tsv(
-    BASE_PATH + 'rna_binding_val.tsv',
-    'disprot_rna_val_embeddings.npz'
-)
-generate_embeddings_for_tsv(
-    BASE_PATH + 'rna_binding_test.tsv',
-    'disprot_rna_test_embeddings.npz'
-)
+# # DisProt DNA datasets
+# print("\n" + "="*60)
+# print("DisProt DNA Datasets")
+# print("="*60)
+# generate_embeddings_for_tsv(
+#     BASE_PATH + 'dna_binding_train.tsv',
+#     'disprot_dna_train_embeddings.npz'
+# )
+# generate_embeddings_for_tsv(
+#     BASE_PATH + 'dna_binding_val.tsv',
+#     'disprot_dna_val_embeddings.npz'
+# )
+# generate_embeddings_for_tsv(
+#     BASE_PATH + 'dna_binding_test.tsv',
+#     'disprot_dna_test_embeddings.npz'
+# )
+
+# # DisProt RNA datasets
+# print("\n" + "="*60)
+# print("DisProt RNA Datasets")
+# print("="*60)
+# generate_embeddings_for_tsv(
+#     BASE_PATH + 'rna_binding_train.tsv',
+#     'disprot_rna_train_embeddings.npz'
+# )
+# generate_embeddings_for_tsv(
+#     BASE_PATH + 'rna_binding_val.tsv',
+#     'disprot_rna_val_embeddings.npz'
+# )
+# generate_embeddings_for_tsv(
+#     BASE_PATH + 'rna_binding_test.tsv',
+#     'disprot_rna_test_embeddings.npz'
+# )
+
+generate_embeddings_for_csv(get_dataset_path(cfg, "biolip", "dna_train_csv"),    get_embedding_path(cfg, "biolip_dna_train"))  # you'll need to add individual dna/rna keys
+generate_embeddings_for_csv(get_dataset_path(cfg, "biolip", "dna_val_csv"),      get_embedding_path(cfg, "biolip_dna_val"))
+generate_embeddings_for_csv(get_dataset_path(cfg, "biolip", "dna_test_csv"),     get_embedding_path(cfg, "biolip_dna_test"))
+generate_embeddings_for_csv(get_dataset_path(cfg, "biolip", "rna_train_csv"),    get_embedding_path(cfg, "biolip_rna_train"))
+generate_embeddings_for_csv(get_dataset_path(cfg, "biolip", "rna_val_csv"),      get_embedding_path(cfg, "biolip_rna_val"))
+generate_embeddings_for_csv(get_dataset_path(cfg, "biolip", "rna_test_csv"),     get_embedding_path(cfg, "biolip_rna_test"))
+generate_embeddings_for_tsv(get_dataset_path(cfg, "disprot", "dna_train_tsv"),   get_embedding_path(cfg, "disprot_dna_train"))
+generate_embeddings_for_tsv(get_dataset_path(cfg, "disprot", "dna_val_tsv"),     get_embedding_path(cfg, "disprot_dna_val"))
+generate_embeddings_for_tsv(get_dataset_path(cfg, "disprot", "dna_test_tsv"),    get_embedding_path(cfg, "disprot_dna_test"))
+generate_embeddings_for_tsv(get_dataset_path(cfg, "disprot", "rna_train_tsv"),   get_embedding_path(cfg, "disprot_rna_train"))
+generate_embeddings_for_tsv(get_dataset_path(cfg, "disprot", "rna_val_tsv"),     get_embedding_path(cfg, "disprot_rna_val"))
+generate_embeddings_for_tsv(get_dataset_path(cfg, "disprot", "rna_test_tsv"),    get_embedding_path(cfg, "disprot_rna_test"))
 
 # Combine DNA + RNA for each split
 print("\n" + "="*60)
 print("Combining DNA and RNA Embeddings")
 print("="*60)
 
-# BioLip combined (DNA + RNA)
-combine_embeddings('biolip_dna_train_embeddings.npz', 'biolip_rna_train_embeddings.npz', 'biolip_dna_rna_train_embeddings.npz')
-combine_embeddings('biolip_dna_val_embeddings.npz', 'biolip_rna_val_embeddings.npz', 'biolip_dna_rna_val_embeddings.npz')
-combine_embeddings('biolip_dna_test_embeddings.npz', 'biolip_rna_test_embeddings.npz', 'biolip_dna_rna_test_embeddings.npz')
+# # BioLip combined (DNA + RNA)
+# combine_embeddings('biolip_dna_train_embeddings.npz', 'biolip_rna_train_embeddings.npz', 'biolip_dna_rna_train_embeddings.npz')
+# combine_embeddings('biolip_dna_val_embeddings.npz', 'biolip_rna_val_embeddings.npz', 'biolip_dna_rna_val_embeddings.npz')
+# combine_embeddings('biolip_dna_test_embeddings.npz', 'biolip_rna_test_embeddings.npz', 'biolip_dna_rna_test_embeddings.npz')
 
-# DisProt combined (DNA + RNA)
-combine_embeddings('disprot_dna_train_embeddings.npz', 'disprot_rna_train_embeddings.npz', 'disprot_dna_rna_train_embeddings.npz')
-combine_embeddings('disprot_dna_val_embeddings.npz', 'disprot_rna_val_embeddings.npz', 'disprot_dna_rna_val_embeddings.npz')
-combine_embeddings('disprot_dna_test_embeddings.npz', 'disprot_rna_test_embeddings.npz', 'disprot_dna_rna_test_embeddings.npz')
+# # DisProt combined (DNA + RNA)
+# combine_embeddings('disprot_dna_train_embeddings.npz', 'disprot_rna_train_embeddings.npz', 'disprot_dna_rna_train_embeddings.npz')
+# combine_embeddings('disprot_dna_val_embeddings.npz', 'disprot_rna_val_embeddings.npz', 'disprot_dna_rna_val_embeddings.npz')
+# combine_embeddings('disprot_dna_test_embeddings.npz', 'disprot_rna_test_embeddings.npz', 'disprot_dna_rna_test_embeddings.npz')
+
+combine_embeddings(get_embedding_path(cfg, "biolip_dna_train"), get_embedding_path(cfg, "biolip_rna_train"), get_embedding_path(cfg, "biolip_dna_rna_train"))
+combine_embeddings(get_embedding_path(cfg, "biolip_dna_val"), get_embedding_path(cfg, "biolip_rna_val"), get_embedding_path(cfg, "biolip_dna_rna_val"))
+combine_embeddings(get_embedding_path(cfg, "biolip_dna_test"), get_embedding_path(cfg, "biolip_rna_test"), get_embedding_path(cfg, "biolip_dna_rna_test"))
+
+combine_embeddings(get_embedding_path(cfg, "disprot_dna_train"), get_embedding_path(cfg, "disprot_rna_train"), get_embedding_path(cfg, "disprot_dna_rna_train"))
+combine_embeddings(get_embedding_path(cfg, "disprot_dna_val"), get_embedding_path(cfg, "disprot_rna_val"), get_embedding_path(cfg, "disprot_dna_rna_val"))
+combine_embeddings(get_embedding_path(cfg, "disprot_dna_test"), get_embedding_path(cfg, "disprot_rna_test"), get_embedding_path(cfg, "disprot_dna_rna_test"))
+
 
 print("\n" + "="*60)
 print("All DNA/RNA embeddings generated successfully!")

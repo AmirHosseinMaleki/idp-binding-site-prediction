@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 
 import csv
+from pathlib import Path
 from rdkit import Chem
 from rdkit import RDLogger
 from src.utils.config import load_config, get_dataset_path
+
+cfg = load_config()
 
 RDLogger.DisableLog('rdApp.*')
 
 ions = []
 
-with open('ligand.tsv', 'r') as f:
+with open(get_dataset_path(cfg, "ahojdb", "ligand_tsv"), 'r') as f:
     csv_reader = csv.reader(f, delimiter='\t')
     next(csv_reader)
     
@@ -33,6 +36,6 @@ with open('ligand.tsv', 'r') as f:
         except:
             continue
 
-with open('ions.txt', 'w') as f:
+with open(str(Path(cfg["data_dir"]) / "ions.txt"), 'w') as f:
     for ion in ions:
         f.write(ion + '\n')

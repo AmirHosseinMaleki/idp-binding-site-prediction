@@ -8,6 +8,7 @@ import os
 
 BATCH_SIZE = 512
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cfg = load_config()
 
 class EmbeddingDataset(Dataset):
     def __init__(self, npz_file):
@@ -85,8 +86,10 @@ print("="*60)
 
 # Load test data
 print("\nLoading test data...")
-scannet_test = EmbeddingDataset('scannet_test_embeddings.npz')
-disprot_test = EmbeddingDataset('disprot_test_embeddings.npz')
+# scannet_test = EmbeddingDataset('scannet_test_embeddings.npz')
+# disprot_test = EmbeddingDataset('disprot_test_embeddings.npz')
+scannet_test = EmbeddingDataset(get_embedding_path(cfg, "scannet_test"))
+disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_protein_test"))
 
 scannet_loader = DataLoader(scannet_test, batch_size=BATCH_SIZE, num_workers=2)
 disprot_loader = DataLoader(disprot_test, batch_size=BATCH_SIZE, num_workers=2)
@@ -95,9 +98,15 @@ print(f"  ScanNet test: {len(scannet_test):,} residues")
 print(f"  DisProt test: {len(disprot_test):,} residues")
 
 # Evaluate both models
+# models_to_evaluate = [
+#     ('Original Phase 3 (Hybrid Val)', 'protein_phase3_esm_model.pt'),
+#     ('IDP-Only Validation', 'protein_hybrid_idpval_model.pt')
+# ]
+
+# Evaluate both models
 models_to_evaluate = [
-    ('Original Phase 3 (Hybrid Val)', 'protein_phase3_esm_model.pt'),
-    ('IDP-Only Validation', 'protein_hybrid_idpval_model.pt')
+    ('Original Phase 3 (Hybrid Val)', get_model_path(cfg, "protein_phase3")),
+    ('IDP-Only Validation', get_model_path(cfg, "protein_hybrid"))
 ]
 
 results = {}

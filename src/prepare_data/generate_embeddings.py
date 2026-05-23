@@ -150,37 +150,44 @@ print("="*60)
 print("Generating ESM-2 Embeddings for All Datasets")
 print("="*60)
 
-# ScanNet datasets (already done, but keeping for completeness)
-generate_embeddings_for_csv(
-    '/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/scannet_train_clustered.csv',
-    'scannet_train_embeddings.npz'
-)
+# # ScanNet datasets (already done, but keeping for completeness)
+# generate_embeddings_for_csv(
+#     '/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/scannet_train_clustered.csv',
+#     'scannet_train_embeddings.npz'
+# )
 
-generate_embeddings_for_csv(
-    '/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/scannet_val_clustered.csv',
-    'scannet_val_embeddings.npz'
-)
+# generate_embeddings_for_csv(
+#     '/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/scannet_val_clustered.csv',
+#     'scannet_val_embeddings.npz'
+# )
 
-generate_embeddings_for_csv(
-    '/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/scannet_test_clustered.csv',
-    'scannet_test_embeddings.npz'
-)
+# generate_embeddings_for_csv(
+#     '/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/scannet_test_clustered.csv',
+#     'scannet_test_embeddings.npz'
+# )
 
-# DisProt datasets
-generate_embeddings_for_tsv(
-    '/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/protein_binding_train.tsv',
-    'disprot_train_embeddings.npz'
-)
+# # DisProt datasets
+# generate_embeddings_for_tsv(
+#     '/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/protein_binding_train.tsv',
+#     'disprot_train_embeddings.npz'
+# )
 
-generate_embeddings_for_tsv(
-    '/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/protein_binding_val.tsv',
-    'disprot_val_embeddings.npz'
-)
+# generate_embeddings_for_tsv(
+#     '/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/protein_binding_val.tsv',
+#     'disprot_val_embeddings.npz'
+# )
 
-generate_embeddings_for_tsv(
-    '/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/protein_binding_test.tsv',
-    'disprot_test_embeddings.npz'
-)
+# generate_embeddings_for_tsv(
+#     '/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/protein_binding_test.tsv',
+#     'disprot_test_embeddings.npz'
+# )
+
+generate_embeddings_for_csv(get_dataset_path(cfg, "scannet", "train_clustered_csv"), get_embedding_path(cfg, "scannet_train"))
+generate_embeddings_for_csv(get_dataset_path(cfg, "scannet", "val_clustered_csv"),   get_embedding_path(cfg, "scannet_val"))
+generate_embeddings_for_csv(get_dataset_path(cfg, "scannet", "test_clustered_csv"),  get_embedding_path(cfg, "scannet_test"))
+generate_embeddings_for_tsv(get_dataset_path(cfg, "disprot", "protein_train_tsv"),   get_embedding_path(cfg, "disprot_protein_train"))
+generate_embeddings_for_tsv(get_dataset_path(cfg, "disprot", "protein_val_tsv"),     get_embedding_path(cfg, "disprot_protein_val"))
+generate_embeddings_for_tsv(get_dataset_path(cfg, "disprot", "protein_test_tsv"),    get_embedding_path(cfg, "disprot_protein_test"))
 
 print("\n" + "="*60)
 print("All embeddings generated successfully!")

@@ -9,15 +9,20 @@ import os
 from pathlib import Path
 from src.utils.config import load_config, get_dataset_path
 
+cfg = load_config()
+
 print("="*60)
 print("Clustering and Filtering ScanNet PPBS")
 print("="*60)
 
 # Step 1: Combine all data for clustering
 print("\nStep 1: Combining datasets...")
-df_train = pd.read_csv('scannet_train.csv')
-df_val = pd.read_csv('scannet_val.csv')
-df_test = pd.read_csv('scannet_test.csv')
+# df_train = pd.read_csv('scannet_train.csv')
+# df_val = pd.read_csv('scannet_val.csv')
+# df_test = pd.read_csv('scannet_test.csv')
+df_train = pd.read_csv(get_dataset_path(cfg, "scannet", "train_csv"))
+df_val   = pd.read_csv(get_dataset_path(cfg, "scannet", "val_csv"))
+df_test  = pd.read_csv(get_dataset_path(cfg, "scannet", "test_csv"))
 
 df_all = pd.concat([df_train, df_val, df_test], ignore_index=True)
 print(f"Total proteins: {len(df_all):,}")

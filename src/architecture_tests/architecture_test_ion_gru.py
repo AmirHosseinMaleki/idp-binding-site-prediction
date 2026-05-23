@@ -11,6 +11,7 @@ EPOCHS = 20
 LR = 0.00005
 WEIGHT_DECAY = 0.001
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cfg = load_config()
 
 class EmbeddingDataset(Dataset):
     def __init__(self, npz_file):
@@ -127,9 +128,13 @@ print("Ion Binding - Bi-GRU Architecture (20 Epochs)")
 print("="*70)
 
 print("\nLoading data...")
-train_data = CombinedDataset(['ahojdb_train_embeddings.npz', 'disprot_ion_train_embeddings.npz'])
-val_data = EmbeddingDataset('disprot_ion_val_embeddings.npz')
-test_data = EmbeddingDataset('disprot_ion_test_embeddings.npz')
+# train_data = CombinedDataset(['ahojdb_train_embeddings.npz', 'disprot_ion_train_embeddings.npz'])
+# val_data = EmbeddingDataset('disprot_ion_val_embeddings.npz')
+# test_data = EmbeddingDataset('disprot_ion_test_embeddings.npz')
+
+train_data = CombinedDataset([get_embedding_path(cfg, "ahojdb_train"), get_embedding_path(cfg, "disprot_ion_train")])
+val_data = EmbeddingDataset(get_embedding_path(cfg, "disprot_ion_val"))
+test_data = EmbeddingDataset(get_embedding_path(cfg, "disprot_ion_test"))
 
 print(f"  Train: {len(train_data):,} samples")
 print(f"  Val: {len(val_data):,} samples")

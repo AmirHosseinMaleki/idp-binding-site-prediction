@@ -12,6 +12,8 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 AA_VOCAB = 'ACDEFGHIKLMNPQRSTVWYX'
 AA_TO_IDX = {aa: i for i, aa in enumerate(AA_VOCAB)}
 
+cfg = load_config()
+
 class StructuredDataset(Dataset):
     def __init__(self, csv_file):
         df = pd.read_csv(csv_file)
@@ -127,8 +129,10 @@ print("="*60)
 print("STAGE 1: Pre-training on Structured Data (AHoJ)")
 print("="*60)
 
-struct_train = StructuredDataset('train_data.csv')
-struct_val = StructuredDataset('val_data.csv')
+# struct_train = StructuredDataset('train_data.csv')
+# struct_val = StructuredDataset('val_data.csv')
+struct_train = StructuredDataset(get_dataset_path(cfg, "ahojdb", "train_csv"))
+struct_val   = StructuredDataset(get_dataset_path(cfg, "ahojdb", "val_csv"))
 
 struct_train_loader = DataLoader(struct_train, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
 struct_val_loader = DataLoader(struct_val, batch_size=BATCH_SIZE, num_workers=2)
@@ -162,8 +166,11 @@ print("\n" + "="*60)
 print("STAGE 2: Fine-tuning on DisProt Data")
 print("="*60)
 
-disprot_train = DisprotDataset('ion_binding_train.tsv')
-disprot_val = DisprotDataset('ion_binding_val.tsv')
+# disprot_train = DisprotDataset('ion_binding_train.tsv')
+# disprot_val = DisprotDataset('ion_binding_val.tsv')
+
+disprot_train = DisprotDataset(get_dataset_path(cfg, "disprot", "ion_train_tsv"))
+disprot_val   = DisprotDataset(get_dataset_path(cfg, "disprot", "ion_val_tsv"))
 
 disprot_train_loader = DataLoader(disprot_train, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
 disprot_val_loader = DataLoader(disprot_val, batch_size=BATCH_SIZE, num_workers=2)
@@ -184,6 +191,7 @@ for epoch in range(FINETUNE_EPOCHS):
     
     if val_loss < best_loss:
         best_loss = val_loss
-        torch.save(model.state_dict(), 'finetuned_model.pt')
+        # torch.save(model.state_dict(), 'finetuned_model.pt')
+        torch.save(model.state_dict(), get_model_path(cfg, "finetuned"))
 
 print(f"\nFine-tuning done! Best val loss: {best_loss:.4f}")

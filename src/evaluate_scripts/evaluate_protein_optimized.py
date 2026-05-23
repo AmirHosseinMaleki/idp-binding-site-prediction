@@ -7,6 +7,7 @@ from src.utils.config import load_config, get_embedding_path, get_model_path
 
 BATCH_SIZE = 512
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cfg = load_config()
 
 class EmbeddingDataset(Dataset):
     def __init__(self, npz_file):
@@ -84,8 +85,10 @@ print("="*60)
 
 # Load test data
 print("\nLoading test data...")
-scannet_test = EmbeddingDataset('scannet_test_embeddings.npz')
-disprot_test = EmbeddingDataset('disprot_test_embeddings.npz')
+# scannet_test = EmbeddingDataset('scannet_test_embeddings.npz')
+# disprot_test = EmbeddingDataset('disprot_test_embeddings.npz')
+scannet_test = EmbeddingDataset(get_embedding_path(cfg, "scannet_test"))
+disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_protein_test"))
 
 scannet_loader = DataLoader(scannet_test, batch_size=BATCH_SIZE, num_workers=2)
 disprot_loader = DataLoader(disprot_test, batch_size=BATCH_SIZE, num_workers=2)
@@ -95,7 +98,8 @@ print(f"  DisProt test: {len(disprot_test):,} residues")
 
 # Load model
 model = BindingNet(input_size=1280).to(DEVICE)
-model.load_state_dict(torch.load('protein_hybrid_idpval_model.pt', map_location=DEVICE))
+# model.load_state_dict(torch.load('protein_hybrid_idpval_model.pt', map_location=DEVICE))
+model.load_state_dict(torch.load(get_model_path(cfg, "protein_hybrid"), map_location=DEVICE))
 
 print(f"\nUsing device: {DEVICE}")
 print("\nModel: protein_hybrid_idpval_model.pt (Optimized - epoch 3, val loss 0.7897)")

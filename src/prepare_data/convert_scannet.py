@@ -7,6 +7,8 @@ import pandas as pd
 import os
 from src.utils.config import load_config, get_dataset_path
 
+cfg = load_config()
+
 def parse_labels_file(label_file):
     """Parse ScanNet label file format"""
     data = {}
@@ -91,17 +93,20 @@ table_file = 'table.csv'
 
 # Train
 print("\nProcessing Training Set...")
-df_train = create_dataset(table_file, 'labels_train.txt', 'scannet_train.csv')
+# df_train = create_dataset(table_file, 'labels_train.txt', 'scannet_train.csv')
+df_train = create_dataset(get_dataset_path(cfg, "scannet", "table_csv"), get_dataset_path(cfg, "scannet", "labels_train"), 'scannet_train.csv')
 
 # Validation - combine all validation sets
 print("\nProcessing Validation Set...")
 # For simplicity, use validation_70 (most similar to training)
-df_val = create_dataset(table_file, 'labels_validation_70.txt', 'scannet_val.csv')
+# df_val = create_dataset(table_file, 'labels_validation_70.txt', 'scannet_val.csv')
+df_val   = create_dataset(get_dataset_path(cfg, "scannet", "table_csv"), get_dataset_path(cfg, "scannet", "labels_val"),   'scannet_val.csv')
 
 # Test - combine all test sets
 print("\nProcessing Test Set...")
 # For simplicity, use test_70
-df_test = create_dataset(table_file, 'labels_test_70.txt', 'scannet_test.csv')
+# df_test = create_dataset(table_file, 'labels_test_70.txt', 'scannet_test.csv')
+df_test  = create_dataset(get_dataset_path(cfg, "scannet", "table_csv"), get_dataset_path(cfg, "scannet", "labels_test"),  'scannet_test.csv')
 
 print("\n" + "="*60)
 print("Conversion Complete!")

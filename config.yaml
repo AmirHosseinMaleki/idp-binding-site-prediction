@@ -116,6 +116,12 @@ embeddings:
   biolip_dna_rna_train: biolip_dna_rna_train_embeddings.npz
   biolip_dna_rna_val:   biolip_dna_rna_val_embeddings.npz
   biolip_dna_rna_test:  biolip_dna_rna_test_embeddings.npz
+  biolip_dna_train: biolip_dna_train_embeddings.npz
+  biolip_dna_val:   biolip_dna_val_embeddings.npz
+  biolip_dna_test:  biolip_dna_test_embeddings.npz
+  biolip_rna_train: biolip_rna_train_embeddings.npz
+  biolip_rna_val:   biolip_rna_val_embeddings.npz
+  biolip_rna_test:  biolip_rna_test_embeddings.npz
 
   # DisProt protein-protein
   disprot_protein_train: disprot_train_embeddings.npz
@@ -126,6 +132,12 @@ embeddings:
   disprot_dna_rna_train: disprot_dna_rna_train_embeddings.npz
   disprot_dna_rna_val:   disprot_dna_rna_val_embeddings.npz
   disprot_dna_rna_test:  disprot_dna_rna_test_embeddings.npz
+  disprot_dna_train: disprot_dna_train_embeddings.npz
+  disprot_dna_val:   disprot_dna_val_embeddings.npz
+  disprot_dna_test:  disprot_dna_test_embeddings.npz
+  disprot_rna_train: disprot_rna_train_embeddings.npz
+  disprot_rna_val:   disprot_rna_val_embeddings.npz
+  disprot_rna_test:  disprot_rna_test_embeddings.npz
 
   # DisProt ion
   disprot_ion_train: disprot_ion_train_embeddings.npz
@@ -159,6 +171,20 @@ models:
   # Multi-task models
   multitask_unified:  multitask_unified_model.pt
   multitask_balanced: multitask_balanced_model.pt
+
+  arch_mlp:  mlp_(baseline)_model.pt
+  arch_cnn:  1d_cnn_model.pt
+  arch_lstm: bi-lstm_model.pt
+  arch_gru:  bi-gru_model.pt
+
+  arch_ion_mlp:  ion_mlp_model.pt
+  arch_ion_cnn:  ion_cnn_model.pt
+  arch_ion_lstm: ion_lstm_model.pt
+  arch_ion_gru:  ion_gru_model.pt
+
+  ion_window_phase1: phase1_model.pt
+  ion_window_phase2: phase2_model.pt
+  ion_window_phase3: phase3_model.pt
 
 # ---------------------------------------------------------------------------
 # MMseqs2 clustering intermediate files

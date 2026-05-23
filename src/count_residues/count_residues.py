@@ -2,42 +2,82 @@ import numpy as np
 import os
 from src.utils.config import load_config, get_embedding_path
 
+cfg = load_config()
 # Define all possible data files
+# files = {
+#     'Protein-Protein': {
+#         'Structured (ScanNet)': {
+#             'train': 'scannet_train_embeddings.npz',
+#             'val': 'scannet_val_embeddings.npz',
+#             'test': 'scannet_test_embeddings.npz'
+#         },
+#         'IDP (DisProt)': {
+#             'train': 'disprot_train_embeddings.npz',
+#             'val': 'disprot_val_embeddings.npz',
+#             'test': 'disprot_test_embeddings.npz'
+#         }
+#     },
+#     'DNA/RNA': {
+#         'Structured (BioLiP)': {
+#             'train': 'biolip_dna_rna_train_embeddings.npz',
+#             'val': 'biolip_dna_rna_val_embeddings.npz',
+#             'test': 'biolip_dna_rna_test_embeddings.npz'
+#         },
+#         'IDP (DisProt)': {
+#             'train': 'disprot_dna_rna_train_embeddings.npz',
+#             'val': 'disprot_dna_rna_val_embeddings.npz',
+#             'test': 'disprot_dna_rna_test_embeddings.npz'
+#         }
+#     },
+#     'Ion': {
+#         'Structured (AHoJ-DB)': {
+#             'train': 'ahojdb_train_embeddings.npz',
+#             'val': 'ahojdb_val_embeddings.npz',
+#             'test': 'ahojdb_test_embeddings.npz'
+#         },
+#         'IDP (DisProt)': {
+#             'train': 'disprot_ion_train_embeddings.npz',
+#             'val': 'disprot_ion_val_embeddings.npz',
+#             'test': 'disprot_ion_test_embeddings.npz'
+#         }
+#     }
+# }
+
 files = {
     'Protein-Protein': {
         'Structured (ScanNet)': {
-            'train': 'scannet_train_embeddings.npz',
-            'val': 'scannet_val_embeddings.npz',
-            'test': 'scannet_test_embeddings.npz'
+            'train': get_embedding_path(cfg, "scannet_train"),
+            'val':   get_embedding_path(cfg, "scannet_val"),
+            'test':  get_embedding_path(cfg, "scannet_test"),
         },
         'IDP (DisProt)': {
-            'train': 'disprot_train_embeddings.npz',
-            'val': 'disprot_val_embeddings.npz',
-            'test': 'disprot_test_embeddings.npz'
+            'train': get_embedding_path(cfg, "disprot_protein_train"),
+            'val':   get_embedding_path(cfg, "disprot_protein_val"),
+            'test':  get_embedding_path(cfg, "disprot_protein_test"),
         }
     },
     'DNA/RNA': {
         'Structured (BioLiP)': {
-            'train': 'biolip_dna_rna_train_embeddings.npz',
-            'val': 'biolip_dna_rna_val_embeddings.npz',
-            'test': 'biolip_dna_rna_test_embeddings.npz'
+            'train': get_embedding_path(cfg, "biolip_dna_rna_train"),
+            'val':   get_embedding_path(cfg, "biolip_dna_rna_val"),
+            'test':  get_embedding_path(cfg, "biolip_dna_rna_test"),
         },
         'IDP (DisProt)': {
-            'train': 'disprot_dna_rna_train_embeddings.npz',
-            'val': 'disprot_dna_rna_val_embeddings.npz',
-            'test': 'disprot_dna_rna_test_embeddings.npz'
+            'train': get_embedding_path(cfg, "disprot_dna_rna_train"),
+            'val':   get_embedding_path(cfg, "disprot_dna_rna_val"),
+            'test':  get_embedding_path(cfg, "disprot_dna_rna_test"),
         }
     },
     'Ion': {
         'Structured (AHoJ-DB)': {
-            'train': 'ahojdb_train_embeddings.npz',
-            'val': 'ahojdb_val_embeddings.npz',
-            'test': 'ahojdb_test_embeddings.npz'
+            'train': get_embedding_path(cfg, "ahojdb_train"),
+            'val':   get_embedding_path(cfg, "ahojdb_val"),
+            'test':  get_embedding_path(cfg, "ahojdb_test"),
         },
         'IDP (DisProt)': {
-            'train': 'disprot_ion_train_embeddings.npz',
-            'val': 'disprot_ion_val_embeddings.npz',
-            'test': 'disprot_ion_test_embeddings.npz'
+            'train': get_embedding_path(cfg, "disprot_ion_train"),
+            'val':   get_embedding_path(cfg, "disprot_ion_val"),
+            'test':  get_embedding_path(cfg, "disprot_ion_test"),
         }
     }
 }

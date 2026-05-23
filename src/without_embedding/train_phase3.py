@@ -14,6 +14,8 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 AA_VOCAB = 'ACDEFGHIKLMNPQRSTVWYX'
 AA_TO_IDX = {aa: i for i, aa in enumerate(AA_VOCAB)}
 
+cfg = load_config()
+
 class StructuredDataset(Dataset):
     def __init__(self, csv_file):
         df = pd.read_csv(csv_file)
@@ -122,11 +124,16 @@ def validate(model, loader, criterion):
             total_loss += loss.item()
     return total_loss / len(loader)
 
-struct_train = StructuredDataset('train_data.csv')
-struct_val = StructuredDataset('val_data.csv')
+# struct_train = StructuredDataset('train_data.csv')
+# struct_val = StructuredDataset('val_data.csv')
 
-disprot_train = DisprotDataset('ion_binding_train.tsv')
-disprot_val = DisprotDataset('ion_binding_val.tsv')
+# disprot_train = DisprotDataset('ion_binding_train.tsv')
+# disprot_val = DisprotDataset('ion_binding_val.tsv')
+
+struct_train = StructuredDataset(get_dataset_path(cfg, "ahojdb", "train_csv"))
+struct_val   = StructuredDataset(get_dataset_path(cfg, "ahojdb", "val_csv"))
+disprot_train = DisprotDataset(get_dataset_path(cfg, "disprot", "ion_train_tsv"))
+disprot_val   = DisprotDataset(get_dataset_path(cfg, "disprot", "ion_val_tsv"))
 
 train_data = ConcatDataset([struct_train, disprot_train])
 val_data = ConcatDataset([struct_val, disprot_val])
@@ -157,6 +164,7 @@ for epoch in range(EPOCHS):
     
     if val_loss < best_loss:
         best_loss = val_loss
-        torch.save(model.state_dict(), 'phase3_model.pt')
+        # torch.save(model.state_dict(), 'phase3_model.pt')
+        torch.save(model.state_dict(), get_model_path(cfg, "ion_window_phase3"))
 
 print(f"\nBest val loss: {best_loss:.4f}")

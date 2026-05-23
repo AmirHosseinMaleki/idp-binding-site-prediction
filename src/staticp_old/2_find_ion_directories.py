@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 
 import os
+
+from matplotlib.path import Path
 from src.utils.config import load_config, get_dataset_path
 
-with open('ions.txt', 'r') as f:
+cfg = load_config()
+
+with open(str(Path(cfg["data_dir"]) / "ions.txt"), 'r') as f:
     ions = [line.strip() for line in f]
 
 
 ion_directories = []
 
 subdirs = []
-for item in os.listdir('data'):
-    if os.path.isdir(f'data/{item}'):
+for item in os.listdir(get_dataset_path(cfg, "ahojdb", "data")):
+    if os.path.isdir(f'{get_dataset_path(cfg, "ahojdb", "data")}/{item}'):
         subdirs.append(item)
 
 subdirs.sort()
@@ -20,7 +24,7 @@ print(f"Found {len(subdirs)} subdirectories to search")
 for i, subdir in enumerate(subdirs):
     print(f"Checking {subdir} ({i+1}/{len(subdirs)})...")
     
-    subdir_path = f'data/{subdir}'
+    subdir_path = f'{get_dataset_path(cfg, "ahojdb", "data")}/{subdir}'
     
     try:
         entries = os.listdir(subdir_path)
@@ -39,6 +43,6 @@ for i, subdir in enumerate(subdirs):
 
 print(f"\nTotal ion directories found: {len(ion_directories)}")
 
-with open('all_ion_directories.txt', 'w') as f:
+with open(str(Path(cfg["data_dir"]) / "all_ion_directories.txt"), 'w') as f:
     for dir_name in ion_directories:
         f.write(dir_name + '\n')

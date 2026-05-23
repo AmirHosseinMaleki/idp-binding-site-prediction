@@ -8,6 +8,7 @@ import os
 
 BATCH_SIZE = 512
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cfg = load_config()
 
 class EmbeddingDataset(Dataset):
     def __init__(self, npz_file):
@@ -190,16 +191,24 @@ print("="*70)
 
 # Load test data
 print("\nLoading DisProt test data...")
-test_data = EmbeddingDataset('disprot_test_embeddings.npz')
+# test_data = EmbeddingDataset('disprot_test_embeddings.npz')
+test_data = EmbeddingDataset(get_embedding_path(cfg, "disprot_protein_test"))
 test_loader = DataLoader(test_data, batch_size=BATCH_SIZE, num_workers=2)
 print(f"  Test samples: {len(test_data):,}")
 
 # Define architectures and their saved model paths
+# architectures = [
+#     ('MLP (Baseline)', MLP(), 'mlp_(baseline)_model.pt'),
+#     ('1D CNN', CNN1D(), '1d_cnn_model.pt'),
+#     ('Bi-LSTM', BiLSTM(), 'bi-lstm_model.pt'),
+#     ('Bi-GRU', BiGRU(), 'bi-gru_model.pt')
+# ]
+
 architectures = [
-    ('MLP (Baseline)', MLP(), 'mlp_(baseline)_model.pt'),
-    ('1D CNN', CNN1D(), '1d_cnn_model.pt'),
-    ('Bi-LSTM', BiLSTM(), 'bi-lstm_model.pt'),
-    ('Bi-GRU', BiGRU(), 'bi-gru_model.pt')
+    ('MLP (Baseline)', MLP(), get_model_path(cfg, "arch_mlp")),
+    ('1D CNN', CNN1D(), get_model_path(cfg, "arch_cnn")),
+    ('Bi-LSTM', BiLSTM(), get_model_path(cfg, "arch_lstm")),
+    ('Bi-GRU', BiGRU(), get_model_path(cfg, "arch_gru"))
 ]
 
 results = []

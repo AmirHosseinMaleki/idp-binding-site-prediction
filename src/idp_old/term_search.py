@@ -13,6 +13,8 @@ import os
 from pathlib import Path
 from src.utils.config import load_config, get_dataset_path
 
+cfg = load_config()
+
 def search_disprot_term(term_name, release="2024_12"):
     go_term = term_name.lower()
     url = f"https://disprot.org/api/search?go_name={go_term.replace(' ', '%20')}&format=tsv&release={release}&page=0&sort_field=disprot_id&sort_value=asc"
@@ -58,7 +60,8 @@ def main():
     }
     
     base_dir = Path("data")
-    raw_dir = base_dir / "raw"
+    # raw_dir = base_dir / "raw"
+    raw_dir = Path(cfg["data_dir"]) / "raw"
     raw_dir.mkdir(exist_ok=True)
     
     all_results = []
@@ -108,8 +111,9 @@ def main():
         for category, row in category_summary.iterrows():
             print(f"  {category}: {row['terms_found']} terms, {row['unique_proteins']} proteins")
         
-        filtered_dir = base_dir / "filtered"
-        
+        # filtered_dir = base_dir / "filtered"
+        filtered_dir = Path(cfg["datasets"]["disprot"]["filtered_dir"])
+
         for category in terms.keys():
             category_data = combined_df[combined_df['category'] == category]
             if not category_data.empty:

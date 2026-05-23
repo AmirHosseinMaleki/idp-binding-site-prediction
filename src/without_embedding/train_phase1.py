@@ -10,6 +10,7 @@ BATCH_SIZE = 512
 EPOCHS = 30
 LR = 0.001
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cfg = load_config()
 
 AA_VOCAB = 'ACDEFGHIKLMNPQRSTVWYX'
 AA_TO_IDX = {aa: i for i, aa in enumerate(AA_VOCAB)}
@@ -89,8 +90,11 @@ def validate(model, loader, criterion):
             total_loss += loss.item()
     return total_loss / len(loader)
 
-train_data = BindingDataset('train_data.csv')
-val_data = BindingDataset('val_data.csv')
+# train_data = BindingDataset('train_data.csv')
+# val_data = BindingDataset('val_data.csv')
+
+train_data = BindingDataset(get_dataset_path(cfg, "ahojdb", "train_csv"))
+val_data   = BindingDataset(get_dataset_path(cfg, "ahojdb", "val_csv"))
 
 train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
 val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, num_workers=2)
@@ -118,6 +122,7 @@ for epoch in range(EPOCHS):
     
     if val_loss < best_loss:
         best_loss = val_loss
-        torch.save(model.state_dict(), 'phase1_model.pt')
+        # torch.save(model.state_dict(), 'phase1_model.pt')
+        torch.save(model.state_dict(), get_model_path(cfg, "ion_window_phase1"))
 
 print(f"\nBest val loss: {best_loss:.4f}")

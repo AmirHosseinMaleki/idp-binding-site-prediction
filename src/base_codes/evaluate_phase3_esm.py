@@ -83,9 +83,14 @@ print("="*60)
 print("Evaluating Phase 3: Hybrid ESM-2 Model")
 print("="*60)
 
+cfg = load_config()
+
 print("\nLoading test data...")
-scannet_test = EmbeddingDataset('scannet_test_embeddings.npz')
-disprot_test = EmbeddingDataset('disprot_test_embeddings.npz')
+# scannet_test = EmbeddingDataset('scannet_test_embeddings.npz')
+# disprot_test = EmbeddingDataset('disprot_test_embeddings.npz')
+
+scannet_test = EmbeddingDataset(get_embedding_path(cfg, "scannet_test"))
+disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_protein_test"))
 
 scannet_loader = DataLoader(scannet_test, batch_size=BATCH_SIZE, num_workers=2)
 disprot_loader = DataLoader(disprot_test, batch_size=BATCH_SIZE, num_workers=2)
@@ -95,7 +100,8 @@ print(f"  DisProt test: {len(disprot_test):,} residues")
 
 # Load model
 model = BindingNet(input_size=1280).to(DEVICE)
-model.load_state_dict(torch.load('protein_phase3_esm_model.pt', map_location=DEVICE))
+# model.load_state_dict(torch.load('protein_phase3_esm_model.pt', map_location=DEVICE))
+model.load_state_dict(torch.load(get_model_path(cfg, "protein_phase3"), map_location=DEVICE))
 
 print(f"\nUsing device: {DEVICE}")
 

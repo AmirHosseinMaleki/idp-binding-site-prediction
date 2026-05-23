@@ -91,14 +91,18 @@ print("="*60)
 print("Ion Hybrid Training - IDP-Only Validation")
 print("="*60)
 
-print("\nCombining training datasets:")
-train_data = CombinedDataset([
-    'ahojdb_train_embeddings.npz',
-    'disprot_ion_train_embeddings.npz'
-])
+cfg = load_config()
 
-print("\nLoading validation dataset (DisProt only):")
-val_data = EmbeddingDataset('disprot_ion_val_embeddings.npz')
+# print("\nCombining training datasets:")
+# train_data = CombinedDataset([
+#     'ahojdb_train_embeddings.npz',
+#     'disprot_ion_train_embeddings.npz'
+# ])
+
+# print("\nLoading validation dataset (DisProt only):")
+# val_data = EmbeddingDataset('disprot_ion_val_embeddings.npz')
+train_data = CombinedDataset([get_embedding_path(cfg, "ahojdb_train"), get_embedding_path(cfg, "disprot_ion_train")])
+val_data = EmbeddingDataset(get_embedding_path(cfg, "disprot_ion_val"))
 
 train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
 val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, num_workers=2)
@@ -130,7 +134,8 @@ for epoch in range(EPOCHS):
     
     if val_loss < best_loss:
         best_loss = val_loss
-        torch.save(model.state_dict(), 'ion_hybrid_idpval_model.pt')
+        # torch.save(model.state_dict(), 'ion_hybrid_idpval_model.pt')
+        torch.save(model.state_dict(), get_model_path(cfg, "ion_hybrid"))
         print("Saved best model")
 
 print(f"\n{'='*60}")

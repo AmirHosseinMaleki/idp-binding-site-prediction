@@ -207,6 +207,8 @@ print("="*80)
 
 print("\nLoading datasets...")
 
+cfg = load_config()
+
 # Training data
 train_data = MultiTaskDataset(
     protein_files=['scannet_train_embeddings.npz', 'disprot_train_embeddings.npz'],

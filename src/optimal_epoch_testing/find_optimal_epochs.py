@@ -9,6 +9,7 @@ BATCH_SIZE = 512
 LR = 0.00005
 WEIGHT_DECAY = 0.001
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cfg = load_config()
 
 class EmbeddingDataset(Dataset):
     def __init__(self, npz_file):
@@ -187,10 +188,36 @@ print(f"Evaluating based on: Loss, AUC, AUPRC, F1")
 results_all = {}
 
 # Protein-Protein
+# results_all['Protein'] = test_epoch_count(
+#     binding_type='Protein-Protein',
+#     train_files=['scannet_train_embeddings.npz', 'disprot_train_embeddings.npz'],
+#     val_file='disprot_val_embeddings.npz',
+#     pos_weight=3.0,
+#     max_epochs=50
+# )
+
+# # DNA/RNA
+# results_all['DNA/RNA'] = test_epoch_count(
+#     binding_type='DNA/RNA',
+#     train_files=['biolip_dna_rna_train_embeddings.npz', 'disprot_dna_rna_train_embeddings.npz'],
+#     val_file='disprot_dna_rna_val_embeddings.npz',
+#     pos_weight=3.0,
+#     max_epochs=50
+# )
+
+# # Ion
+# results_all['Ion'] = test_epoch_count(
+#     binding_type='Ion',
+#     train_files=['ahojdb_train_embeddings.npz', 'disprot_ion_train_embeddings.npz'],
+#     val_file='disprot_ion_val_embeddings.npz',
+#     pos_weight=30.0,
+#     max_epochs=50
+# )
+
 results_all['Protein'] = test_epoch_count(
     binding_type='Protein-Protein',
-    train_files=['scannet_train_embeddings.npz', 'disprot_train_embeddings.npz'],
-    val_file='disprot_val_embeddings.npz',
+    train_files=[get_embedding_path(cfg, "scannet_train"), get_embedding_path(cfg, "disprot_protein_train")],
+    val_file=get_embedding_path(cfg, "disprot_protein_val"),
     pos_weight=3.0,
     max_epochs=50
 )
@@ -198,8 +225,8 @@ results_all['Protein'] = test_epoch_count(
 # DNA/RNA
 results_all['DNA/RNA'] = test_epoch_count(
     binding_type='DNA/RNA',
-    train_files=['biolip_dna_rna_train_embeddings.npz', 'disprot_dna_rna_train_embeddings.npz'],
-    val_file='disprot_dna_rna_val_embeddings.npz',
+    train_files=[get_embedding_path(cfg, "biolip_dna_rna_train"), get_embedding_path(cfg, "disprot_dna_rna_train")],
+    val_file=get_embedding_path(cfg, "disprot_dna_rna_val"),
     pos_weight=3.0,
     max_epochs=50
 )
@@ -207,8 +234,8 @@ results_all['DNA/RNA'] = test_epoch_count(
 # Ion
 results_all['Ion'] = test_epoch_count(
     binding_type='Ion',
-    train_files=['ahojdb_train_embeddings.npz', 'disprot_ion_train_embeddings.npz'],
-    val_file='disprot_ion_val_embeddings.npz',
+    train_files=[get_embedding_path(cfg, "ahojdb_train"), get_embedding_path(cfg, "disprot_ion_train")],
+    val_file=get_embedding_path(cfg, "disprot_ion_val"),
     pos_weight=30.0,
     max_epochs=50
 )

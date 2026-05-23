@@ -8,6 +8,7 @@ import os
 
 BATCH_SIZE = 512
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cfg = load_config()
 
 class EmbeddingDataset(Dataset):
     def __init__(self, npz_file):
@@ -87,16 +88,23 @@ print("="*60)
 
 # Load test data
 print("\nLoading test data...")
-ahojdb_test = EmbeddingDataset('ahojdb_test_embeddings.npz')
-disprot_test = EmbeddingDataset('disprot_ion_test_embeddings.npz')
+# ahojdb_test = EmbeddingDataset('ahojdb_test_embeddings.npz')
+# disprot_test = EmbeddingDataset('disprot_ion_test_embeddings.npz')
+
+ahojdb_test = EmbeddingDataset(get_embedding_path(cfg, "ahojdb_test"))
+disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_ion_test"))
 
 ahojdb_loader = DataLoader(ahojdb_test, batch_size=BATCH_SIZE, num_workers=2)
 disprot_loader = DataLoader(disprot_test, batch_size=BATCH_SIZE, num_workers=2)
 
 # Evaluate both models
+# models_to_evaluate = [
+#     ('Original Phase 3 (Hybrid Val)', 'ion_phase3_model.pt'),
+#     ('IDP-Only Validation', 'ion_hybrid_idpval_model.pt')
+# ]
 models_to_evaluate = [
-    ('Original Phase 3 (Hybrid Val)', 'ion_phase3_model.pt'),
-    ('IDP-Only Validation', 'ion_hybrid_idpval_model.pt')
+    ('Original Phase 3 (Hybrid Val)', get_model_path(cfg, "ion_phase3")),
+    ('IDP-Only Validation', get_model_path(cfg, "ion_hybrid"))
 ]
 
 results = {}

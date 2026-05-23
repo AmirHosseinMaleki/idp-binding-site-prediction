@@ -9,6 +9,8 @@ from sklearn.model_selection import train_test_split
 import json
 from src.utils.config import load_config, get_dataset_path
 
+cfg = load_config()
+
 df = pd.read_csv('final_complete_ion_dataset.csv')
 print(f"Loaded {len(df)} proteins")
 

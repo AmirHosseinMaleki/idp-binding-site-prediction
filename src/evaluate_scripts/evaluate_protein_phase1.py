@@ -9,6 +9,7 @@ from src.utils.config import load_config, get_dataset_path, get_model_path
 WINDOW_SIZE = 31
 BATCH_SIZE = 512
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cfg = load_config()
 
 AA_VOCAB = 'ACDEFGHIKLMNPQRSTVWYX'
 AA_TO_IDX = {aa: i for i, aa in enumerate(AA_VOCAB)}
@@ -126,10 +127,13 @@ print("Evaluating Phase 1: Protein-Protein Model")
 print("="*60)
 
 print("\nLoading test data...")
-# ScanNet structured test
-scannet_test = BindingDataset('/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/scannet_test_clustered.csv')
-# DisProt protein-binding test
-disprot_test = BindingDataset('/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/protein_binding_test.tsv')
+# # ScanNet structured test
+# scannet_test = BindingDataset('/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/scannet_test_clustered.csv')
+# # DisProt protein-binding test
+# disprot_test = BindingDataset('/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/protein_binding_test.tsv')
+
+scannet_test = BindingDataset(get_dataset_path(cfg, "scannet", "test_clustered_csv"))
+disprot_test = BindingDataset(get_dataset_path(cfg, "disprot", "protein_test_tsv"))
 
 scannet_loader = DataLoader(scannet_test, batch_size=BATCH_SIZE, num_workers=2)
 disprot_loader = DataLoader(disprot_test, batch_size=BATCH_SIZE, num_workers=2)
@@ -140,7 +144,8 @@ print(f"  DisProt test: {len(disprot_test):,} residues")
 # Load model
 input_size = WINDOW_SIZE * len(AA_VOCAB)
 model = BindingNet(input_size).to(DEVICE)
-model.load_state_dict(torch.load('/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/protein_phase1_model.pt', map_location=DEVICE))
+# model.load_state_dict(torch.load('/home/malekia/idp-binding-site-prediction/data/ScanNet/datasets/PPBS/protein_phase1_model.pt', map_location=DEVICE))
+model.load_state_dict(torch.load(get_model_path(cfg, "protein_phase1"), map_location=DEVICE))
 
 print(f"\nUsing device: {DEVICE}")
 print("\n" + "="*60)

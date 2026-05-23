@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 
 import os
+from pathlib import Path
 from src.utils.config import load_config, get_dataset_path
 
-with open('all_ion_directories.txt', 'r') as f:
+cfg = load_config()
+
+with open(str(Path(cfg["data_dir"]) / "all_ion_directories.txt"), 'r') as f:
     ion_dirs = [line.strip() for line in f]
 
 print(f"Processing ALL {len(ion_dirs)} ion directories:")
@@ -20,7 +23,7 @@ for i, dir_name in enumerate(ion_dirs):
     ligand = parts[2]
     
     found = False
-    subdirs = os.listdir('data')
+    subdirs = os.listdir(cfg["datasets"]["ahojdb"]["dir"])
     
     for subdir in subdirs:
         dir_path = f'data/{subdir}/{dir_name}'
@@ -57,7 +60,7 @@ for i, dir_name in enumerate(ion_dirs):
 
 print(f"\nSuccessfully processed: {len(results)} directories")
 
-with open('all_binding_sites.txt', 'w') as f:
+with open(str(Path(cfg["data_dir"]) / "all_binding_sites.txt"), 'w') as f:
     for result in results:
         f.write(f"{result['dir_name']},{result['pdb_id']},{result['chain_id']},{result['ligand']},{' '.join(result['binding_residues'])}\n")
 

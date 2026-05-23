@@ -95,17 +95,22 @@ print("="*60)
 print("Phase 3: Hybrid Training (ScanNet + DisProt)")
 print("="*60)
 
-print("\nCombining training datasets:")
-train_data = CombinedDataset([
-    'scannet_train_embeddings.npz',
-    'disprot_train_embeddings.npz'
-])
+cfg = load_config()
 
-print("\nCombining validation datasets:")
-val_data = CombinedDataset([
-    'scannet_val_embeddings.npz',
-    'disprot_val_embeddings.npz'
-])
+# print("\nCombining training datasets:")
+# train_data = CombinedDataset([
+#     'scannet_train_embeddings.npz',
+#     'disprot_train_embeddings.npz'
+# ])
+
+# print("\nCombining validation datasets:")
+# val_data = CombinedDataset([
+#     'scannet_val_embeddings.npz',
+#     'disprot_val_embeddings.npz'
+# ])
+
+train_data = CombinedDataset([get_embedding_path(cfg, "scannet_train"), get_embedding_path(cfg, "disprot_protein_train")])
+val_data = CombinedDataset([get_embedding_path(cfg, "scannet_val"), get_embedding_path(cfg, "disprot_protein_val")])
 
 train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
 val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, num_workers=2)
@@ -141,11 +146,13 @@ for epoch in range(EPOCHS):
     
     if val_loss < best_loss:
         best_loss = val_loss
-        torch.save(model.state_dict(), 'protein_phase3_esm_model.pt')
+        # torch.save(model.state_dict(), 'protein_phase3_esm_model.pt')
+        torch.save(model.state_dict(), get_model_path(cfg, "protein_phase3"))
         print("    Saved best model")
 
 print(f"\n{'='*60}")
 print(f"Training complete!")
 print(f"Best val loss: {best_loss:.4f}")
 print(f"Model saved: protein_phase3_esm_model.pt")
+print(f"Model saved: {get_model_path(cfg, 'protein_phase3')}")
 print(f"{'='*60}")

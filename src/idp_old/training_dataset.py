@@ -136,6 +136,11 @@ def save_training_datasets(all_examples, output_dir="data/training"):
         df.to_csv(tsv_file, sep='\t', index=False)
 
 def main():
+    cfg = load_config()
+    sequences_dir = cfg["datasets"]["disprot"]["sequences_dir"]
+    filtered_dir  = cfg["datasets"]["disprot"]["filtered_dir"]
+    training_dir  = cfg["datasets"]["disprot"]["training_dir"]
+    
     all_protein_ids = get_all_protein_ids()
     print(f"Processing {len(all_protein_ids)} proteins")
     

@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 from src.utils.config import load_config, get_dataset_path
 
+cfg = load_config()
+
 print("="*60)
 print("Splitting DisProt DNA and RNA Binding Data")
 print("="*60)
@@ -79,13 +81,15 @@ def split_disprot_data(input_file, output_prefix):
 print("\n" + "="*60)
 print("DisProt DNA Binding Data")
 print("="*60)
-split_disprot_data('/home/malekia/idp-binding-site-prediction/data/training/dna_binding_training_data.tsv', 'dna_binding')
+# split_disprot_data('/home/malekia/idp-binding-site-prediction/data/training/dna_binding_training_data.tsv', 'dna_binding')
+split_disprot_data(get_dataset_path(cfg, "disprot", "dna_training_tsv"), 'dna_binding')
 
 # Process RNA
 print("\n" + "="*60)
 print("DisProt RNA Binding Data")
 print("="*60)
-split_disprot_data('/home/malekia/idp-binding-site-prediction/data/training/rna_binding_training_data.tsv', 'rna_binding')
+# split_disprot_data('/home/malekia/idp-binding-site-prediction/data/training/rna_binding_training_data.tsv', 'rna_binding')
+split_disprot_data(get_dataset_path(cfg, "disprot", "rna_training_tsv"), 'rna_binding')
 
 print("\n" + "="*60)
 print("Splits Complete!")
