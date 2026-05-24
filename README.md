@@ -2,35 +2,61 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-This research project focuses on predicting protein-protein, DNA/RNA, and ion binding sites within intrinsically disordered protein (IDP) regions. IDPs are flexible protein segments that lack a fixed three-dimensional structure but play crucial roles in cellular interactions, including signaling, regulation, and molecular recognition. The system uses deep learning to identify amino acid residues that participate in binding interactions, addressing a critical gap in understanding IDP functionality.
+![Binding site prediction on a disordered protein sequence](figures/binding-site.svg)
+
+This project investigates whether **hybrid training** — combining binding site 
+data from large structured-protein databases with IDP-specific annotations from 
+DisProt — improves binding site prediction in intrinsically disordered protein 
+(IDP) regions. IDPs lack stable 3D structure but play key roles in signaling, 
+regulation, and molecular recognition. Because structure-based predictors 
+cannot be applied to them, sequence-based approaches are required.
+
+We predict per-residue binding probability for three binding types: 
+**protein–protein**, **DNA/RNA**, and **ion** binding sites. Models use 
+[ESM-2](https://github.com/facebookresearch/esm) protein language model 
+embeddings (1280-dimensional, per-residue) as input — purely sequence-based, 
+so applicable to both structured and disordered proteins.
 
 ## Table of Contents
-- [Overview](#overview)
+- [Research Hypothesis](#research-hypothesis)
 - [Results](#results)
 - [Demo](#demo)
 - [Documentation](#documentation)
 - [Environment Setup](#environment-setup)
-- [Quick Start](#quick-start)
 - [Data](#data)
-- [Code Architecture](#code-architecture)
+- [Training Overview](#training-overview)
 - [Execution Guide](#execution-guide)
 
+---
 
-## Overview
+## Research Hypothesis
 
-![Binding site prediction on a disordered protein sequence](figures/binding-site.svg)
+> **Hypothesis:** Enhancing IDP binding site prediction by incorporating 
+> binding site data from well-structured proteins into training.
 
-IDPs lack stable 3D structure, which means structure-based binding site predictors cannot be applied to them. Existing sequence-based models are typically trained on structured proteins, leaving a gap in IDP-specific prediction. This project investigates whether that gap can be closed by **hybrid training** - combining large structured-protein binding databases (AHoJ-DB, BioLiP, ScanNet) with IDP-specific annotations from DisProt, while using DisProt-only validation to ensure the saved model performs best on disordered regions.
+Standard approaches train exclusively on DisProt IDP annotations. We 
+investigated whether supplementing this limited IDP data with large 
+structured-protein binding databases leads to better IDP prediction.
 
-Three binding types are addressed: protein-protein, DNA/RNA, and ion binding. For each, models are trained across three phases - structured data only, IDP data only, and hybrid - and evaluated on a held-out DisProt test set to measure IDP prediction quality directly.
+To test this, we trained models under three configurations (referred to 
+throughout all documentation as **Phase 1**, **Phase 2**, and **Phase 3**):
 
-The core finding is that hybrid training consistently outperforms both single-source alternatives: it matches structured-only performance on structured test sets while achieving significantly better IDP prediction than IDP-only training, which is limited by DisProt's small size.
+| Phase | Training Data | Validation Data | Purpose |
+|-------|--------------|-----------------|---------|
+| **Phase 1** | Structured only (AHoJ-DB / BioLiP / ScanNet) | Structured val set | Structured-data baseline |
+| **Phase 2** | DisProt (IDP) only | DisProt val set | IDP-only baseline |
+| **Phase 3 — Hybrid** | Structured + DisProt | DisProt val set | Main approach |
 
-[ESM-2](https://github.com/facebookresearch/esm) protein language model embeddings (1280-dimensional, per-residue) are used as input features, chosen because they operate purely on sequence and thus apply equally to structured and disordered proteins. Architecture and hyperparameter experiments were conducted to confirm the chosen MLP setup is well-suited for this input type and to rule out that results were an artefact of a suboptimal model.
+In Phase 3, the model is trained on both data sources but validated on DisProt 
+sequences only - ensuring the saved checkpoint is selected for IDP performance, 
+which is the prediction target we care about.
+
+---
 
 ## Results
 
-Best model performance on the DisProt IDP test set (hybrid training, MLP, optimized hyperparameters):
+Best model performance on the DisProt IDP test set (Phase 3, MLP, optimized 
+hyperparameters):
 
 | Binding Type    | AUC    | AUPRC  | MCC    | F1     |
 |-----------------|--------|--------|--------|--------|
@@ -38,179 +64,170 @@ Best model performance on the DisProt IDP test set (hybrid training, MLP, optimi
 | DNA/RNA         | 0.7126 | 0.5548 | 0.3618 | 0.5881 |
 | Ion             | 0.8487 | 0.5931 | 0.4898 | 0.6135 |
 
-Full results including phase comparison, architecture benchmarks, and hyperparameter tuning analysis: [docs/results_summary.md](docs/results_summary.md)
+Full results including phase comparison, architecture benchmarks, and 
+hyperparameter analysis: [docs/3-results_summary.md](docs/3-results_summary.md)
+
+---
 
 ## Demo
 
-Run a prediction on a single protein sequence:
+**Live demo:** [View 3D binding site prediction on 1WVL Chain A](https://amirhosseinmaleki.github.io/idp-binding-site-prediction/demo/binding_site_demo.html)
+
+Run a prediction locally:
 ```bash
 python predict.py \
-  --sequence "MDVFMKGLSKAKEGVVAAAEKTKQGVAEAAGKTKEGVLYVGSKTKEGVVHGVATVAEKTKEQASHLGGAVVGGSNNQQNYPPQGSTSNSTYGSSRNMQDIVPNDSRSRPQHSMSRHNPQNSSSTFAFAQNHFQSSDAPGATNSSSNSSTNNNSSSVSGSGRNMQDIVPNDS" \
+  --sequence "MVKVKFKYKGEEKEVDTSKIKKVWRVGKMVSFTYDDNGKTGRGAVSEKDAPKELLDMLARAEREKKGVLKKLRAVENELH" \
   --binding_type protein \
   --output results/prediction.tsv
 ```
 
-This sequence is human alpha-synuclein (UniProt P37840), a well-characterized IDP. The model predicts per-residue binding probabilities.
+This sequence is the demo protein from `demo/demo_protein.fasta`, drawn from 
+the protein-protein binding test set. Ground truth labels and expected model 
+output are provided in `demo/` for verification. Pre-trained model weights are 
+included in `data/` - no additional download is needed.
 
-> **Note:** Pre-trained model weights and a full visualization example are provided in > **Live demo:** [View 3D binding site prediction](https://amirhosseinmaleki.github.io/idp-binding-site-prediction/demo/binding_site_demo.html).
+---
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [Data Preparation](docs/data_preparation.md) | Step-by-step pipeline for all three binding types |
-| [Code Architecture](docs/code_architecture.md) | Detailed module descriptions and class references |
-| [Results Summary](docs/results_summary.md) | Formal results document following project specification |
+Read in this order:
+
+| # | Document | Description |
+|---|----------|-------------|
+| 1 | [Data Preparation](docs/1-data_preparation.md) | Step-by-step pipeline for all three binding types |
+| 2 | [Code Architecture](docs/2-code_architecture.md) | Module descriptions, class references, data flow |
+| 3 | [Results Summary](docs/3-results_summary.md) | Formal results following the project specification |
+
+The project specification is included at [docs/specification.pdf](docs/specification.pdf).
+
+---
 
 ## Environment Setup
 
 ### Prerequisites
 - Python 3.8+
-- CUDA-compatible GPU (recommended for training; CPU possible but slow)
-- 16GB+ RAM
-- 50GB+ disk space for datasets and models
+- NVIDIA GPU with CUDA 12.8+ (required for training; CPU inference is 
+  possible but very slow and untested)
+- 16 GB+ RAM
+- 50 GB+ disk space for datasets and embeddings
 
 ### Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/idp-binding-site-prediction.git
-   cd idp-binding-site-prediction
-   ```
 
-2. Create a virtual environment:
-   ```bash
-   python -m venv biotite_venv
-   source biotite_venv/bin/activate  # On Windows: biotite_venv\Scripts\activate
-   ```
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/idp-binding-site-prediction.git
+cd idp-binding-site-prediction
+```
+
+2. Create and activate a conda environment (the project was developed with 
+   [Miniconda](https://docs.conda.io/en/latest/miniconda.html)):
+```bash
+conda create -n protein python=3.8
+conda activate protein
+```
 
 3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. Verify installation:
-   ```bash
-   python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}')"
-   ```
-
-### Hardware Requirements
-- **GPU**: NVIDIA GPU with CUDA 12.8+ (RTX 30-series or newer recommended)
-- **CPU**: Multi-core processor for data preprocessing
-## Quick Start
-
-1. Follow the [Environment Setup](#environment-setup) above.
-
-2. Pre-trained model weights are already included in `data/` — no download needed.
-
-3. Run a prediction on a protein sequence:
 ```bash
-   python predict.py --sequence "MSEQNNTEMTFQIQRIYTKDI..." --binding_type ion
+pip install -r requirements.txt
 ```
-   This outputs per-residue binding probabilities for the input sequence.
 
-> **Note:** A full demo with an example sequence and expected output is provided in [Demo](#demo).
+4. Verify GPU availability:
+```bash
+python -c "import torch; print(f'PyTorch: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}')"
+```
+
+> **Note for SLURM users:** The cluster submission scripts use 
+> `source ~/miniconda3/etc/profile.d/conda.sh` followed by 
+> `conda activate protein`. Adjust the path if your Miniconda is installed 
+> elsewhere.
+
+---
 
 ## Data
 
-The project uses multiple datasets for training and evaluation. Data files are currently not publicly available but can be prepared from the following sources.
+Data files are not publicly available due to their size, but can be prepared 
+from the sources below or provided upon request.
 
-### Dataset Sources
-- **[AHoJ-DB](https://apoholo.cz/db/archive)**: Ion-protein binding data (used for ion binding sites)
-- **[BioLiP](https://aideepmed.com/BioLiP/download.html)**: DNA/RNA-protein binding data from PDB (used for nucleic acid binding sites)
-- **[ScanNet](https://github.com/jertubiana/ScanNet/tree/main/datasets)**: Protein-protein interaction data (used for protein binding sites)
-- **[DisProt](https://disprot.org/download)**: Intrinsically disordered protein annotations (used for IDP-specific training across all binding types)
-- **UniProt**: Protein sequences retrieved programmatically via the [UniProt REST API](https://rest.uniprot.org/) using `src/idp_old/download_sequences.py`
-- **[CAID3](https://caid.idpcentral.org/)**: Official benchmark test set used for final model evaluation and comparison with published methods
-- **[MMseqs2](https://github.com/soedinglab/MMseqs2)**: Sequence clustering tool used to prevent train/test overlap (sequences with >10% identity separated across splits)
+| Source | Role |
+|--------|------|
+| [AHoJ-DB](https://apoholo.cz/db/archive) | Structured ion binding training data |
+| [BioLiP](https://aideepmed.com/BioLiP/download.html) | Structured DNA/RNA binding training data |
+| [ScanNet PPBS](https://github.com/jertubiana/ScanNet/tree/main/datasets) | Structured protein–protein binding training data |
+| [DisProt](https://disprot.org/download) | IDP binding annotations (training, validation, and test) |
+| [UniProt REST API](https://rest.uniprot.org/) | Protein sequences for DisProt entries, retrieved via `src/idp_old/download_sequences.py` |
+| [CAID3](https://caid.idpcentral.org/) | Official benchmark test set |
+| [MMseqs2](https://github.com/soedinglab/MMseqs2) | Sequence clustering tool, used to prevent train/test data leakage |
 
-### Data Preparation
-Full step-by-step pipeline for all three binding types: [docs/data_preparation.md](docs/data_preparation.md)
+Full preparation pipeline: [docs/1-data_preparation.md](docs/1-data_preparation.md)
 
-## Code Architecture
+---
 
-The project is organized into the following top-level modules:
+## Training Overview
 
-| Module | Responsibility |
-|--------|---------------|
-| `src/prepare_data/` | Data preprocessing, clustering, and embedding generation |
-| `src/staticp_old/` | AHoJ-DB ion binding site extraction pipeline |
-| `src/idp_old/` | DisProt data collection and UniProt sequence download |
-| `src/other_codes/` | Ion dataset utilities and clustering |
-| `src/base_codes/` | Phase 1–3 training scripts and SLURM submission files |
-| `src/training_scripts/` | Hybrid and multi-task training |
-| `src/architecture_tests/` | MLP vs CNN vs LSTM vs GRU comparison |
-| `src/parameter_testing/` | Hyperparameter grid search |
-| `src/optimal_epoch_testing/` | Epoch count optimisation |
-| `src/evaluate_scripts/` | Model evaluation and phase comparison |
-| `src/without_embedding/` | Sequence-only baseline (no ESM-2) |
+Each binding type is trained in three phases (see [Research Hypothesis](#research-hypothesis)).  
+A simple four-layer MLP on ESM-2 embeddings is used as the primary model, chosen 
+after benchmarking against Bi-LSTM, Bi-GRU, and 1D CNN alternatives — all of 
+which underperformed while training 2–6× slower.
 
-Full module descriptions, class references, and data flow diagram: [docs/code_architecture.md](docs/code_architecture.md)
+Two multi-task variants were also tested: one with a single shared encoder and 
+three task-specific output heads (one per binding type), and one with a custom 
+batch sampler enforcing equal representation from each binding type per batch. 
+Neither variant outperformed the per-task individual models.
+
+---
 
 ## Execution Guide
 
-### Training Models
+### Training
 
-#### Phase 1: Structured Datasets
-Train baseline models on high-quality curated data:
+Replace `ion` / `dna_rna` / `protein` as needed. Each `.py` script has a 
+corresponding `.sh` SLURM submission file.
+
+**Phase 1 — Train on structured data only:**
 ```bash
-# Ion binding
 python src/base_codes/train_ion_phase1.py
-
-# DNA/RNA binding
 python src/base_codes/train_dna_rna_phase1.py
-
-# Protein binding
-python src/base_codes/train_protein_phase1.py
+python src/base_codes/train_phase1_esm.py       # protein-protein
 ```
 
-#### Phase 2: IDP Expansion
-Fine-tune on DisProt for IDP characteristics:
+**Phase 2 — Train on DisProt (IDP) data only:**
 ```bash
-# Continue from Phase 1 models
 python src/base_codes/train_ion_phase2.py
 python src/base_codes/train_dna_rna_phase2.py
-python src/base_codes/train_protein_phase2.py
+python src/base_codes/train_phase2_esm.py
 ```
 
-#### Phase 3: Hybrid Optimization
-Combine all data with IDP validation:
+**Phase 3 — Hybrid training, validated on DisProt only (main result):**
 ```bash
-python src/base_codes/train_ion_phase3.py
-python src/base_codes/train_dna_rna_phase3.py
-python src/base_codes/train_protein_phase3.py
+python src/training_scripts/train_ion_hybrid_idp_val_optimized.py
+python src/training_scripts/train_dna_rna_hybrid_idp_val_optimized.py
+python src/training_scripts/train_protein_hybrid_idp_val_optimized.py
 ```
 
-#### Advanced Training
-- **Multi-task learning (unified)**: `python src/training_scripts/train_multitask_unified.py`
-- **Multi-task learning (balanced)**: `python src/training_scripts/train_multitask_balanced.py`
-- **Hybrid IDP validation**: `python src/training_scripts/train_ion_hybrid_idp_val.py`
-- **Fine-tuning**: `python src/training_scripts/train_finetune.py`
-
-### Evaluating Models
-Run comprehensive evaluations:
+**Additional experiments (optional):**
 ```bash
-# Evaluate all phases for ion binding
+# Single model predicting all three binding types simultaneously
+# (two variants: equal task weight per batch vs. natural data proportions)
+python src/training_scripts/train_multitask_balanced.py
+python src/training_scripts/train_multitask_unified.py
+
+# Two-stage approach: pre-train on structured data, then adapt to DisProt
+python src/training_scripts/train_finetune.py
+```
+
+> **Note:** Embedding generation must be completed before any training script 
+> is run — see [docs/1-data_preparation.md](docs/1-data_preparation.md). All 
+> scripts are designed for a SLURM cluster. To run locally, update the data 
+> paths in `config.yaml`.
+
+### Evaluation
+```bash
 python src/evaluate_scripts/evaluate_ion_all_phases.py
-
-# Compare architectures
-python src/architecture_tests/architecture_test_ion.py
-
-# Performance comparison
-python src/evaluate_scripts/evaluate_ion_comparison.py
+python src/evaluate_scripts/evaluate_protein_comparison.py
+python src/architecture_tests/architecture_test_ion.py   # architecture comparison
 ```
 
 ### Hyperparameter Tuning
 ```bash
-# Grid search for protein binding
 python src/parameter_testing/grid_search_protein.py
 ```
-
-### Notes
-- Ensure data is prepared and embeddings generated before running any training script. See [docs/data_preparation.md](docs/data_preparation.md).
-- All training scripts are designed for a SLURM cluster. Each `.py` script has a corresponding `.sh` submission file. Adjust paths if running locally.
-- Models are saved as `.pt` files in the `data/` directory. Pre-trained weights are included in the `data/` directory of this repository.
-- GPU is required for efficient training; adjust batch sizes for memory constraints.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
