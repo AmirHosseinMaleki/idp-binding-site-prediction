@@ -17,7 +17,7 @@ All scripts assume you are working from the repository root. Training scripts ar
 
 ## Overview of Data Sources
 
-| Source | Binding Type | Role | Download |
+| Source | Binding Type | Role | How to obtain |
 |--------|-------------|------|----------|
 | [AHoJ-DB](https://apoholo.cz/db/archive) | Ion | Structured training data | Archive download |
 | [BioLiP](https://aideepmed.com/BioLiP/download.html) | DNA/RNA | Structured training data | Files: `protein_nr.fasta`, `BioLiP_nr.txt` |

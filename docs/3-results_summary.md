@@ -2,6 +2,16 @@
 
 This document summarizes the implementation, data statistics, and model performance for each task in the project specification. The project investigates whether hybrid training - combining binding site data from structured proteins with IDP binding data from DisProt - improves binding site prediction in intrinsically disordered protein regions.
 
+Task numbering follows the project specification (included at [docs/specification.pdf](specification))
+
+Three training phases were tested for each binding type:
+
+| Phase | Training Data | Validation Data | Purpose |
+|---|---|---|---|
+| Phase 1 | Structured only (AHoJ-DB / BioLiP / ScanNet) | Mixed | Baseline on structured data |
+| Phase 2 | IDP only (DisProt) | DisProt | Baseline on IDP data |
+| Phase 3 (Hybrid) | Structured + DisProt | DisProt only | Research hypothesis |
+
 ---
 
 ## Table of Contents
@@ -177,14 +187,6 @@ Total configurations tested: 54 (3 LR × 3 dropout × 3 WD × 2 batch size). Opt
 **Implementation:** `src/base_codes/`, `src/training_scripts/`, `src/evaluate_scripts/`
 
 ### Training Strategy
-
-Three training phases were tested for each binding type:
-
-| Phase | Training Data | Validation Data | Purpose |
-|---|---|---|---|
-| Phase 1 | Structured only (AHoJ-DB / BioLiP / ScanNet) | Mixed | Baseline on structured data |
-| Phase 2 | IDP only (DisProt) | DisProt | Baseline on IDP data |
-| Phase 3 (Hybrid) | Structured + DisProt | DisProt only | Research hypothesis |
 
 ![Phase comparison bar chart](../figures/phase_comparison.png)
 
