@@ -13,4 +13,4 @@ cd /home/malekia/idp-binding-site-prediction/data
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate protein
 
-python3 /home/malekia/idp-binding-site-prediction/src/evaluate_architectures_complete.py
+python3 /home/malekia/idp-binding-site-prediction/src/evaluate_scripts/evaluate_architectures_complete.py

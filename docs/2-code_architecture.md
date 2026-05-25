@@ -33,9 +33,9 @@ idp-binding-site-prediction/
 ├── requirements.txt
 │
 ├── docs/
-│   ├── data_preparation.md
-│   ├── code_architecture.md        ← this file
-│   └── results_summary.md
+│   ├── 1-data_preparation.md
+│   ├── 2-code_architecture.md        ← this file
+│   └── 3-results_summary.md
 │
 ├── demo/                           ← demo input and expected output
 │
@@ -168,7 +168,7 @@ Advanced training approaches beyond the basic three-phase strategy.
 
 | Script | Responsibility |
 |--------|---------------|
-| `train_protein_hybrid_idp_val.py` | Hybrid training (ScanNet + DisProt) with **DisProt-only** validation — the key innovation ensuring the saved model performs best on IDPs |
+| `train_protein_hybrid_idp_val.py` | Hybrid training (ScanNet + DisProt) with DisProt-only validation, ensuring the saved checkpoint is selected for IDP performance |
 | `train_protein_hybrid_idp_val_optimized.py` | Same but with optimized hyperparameters from grid search (LR=0.00005, WD=0.001) |
 | `train_ion_hybrid_idp_val.py` | Hybrid ion training with DisProt-only validation |
 | `train_ion_hybrid_idp_val_optimized.py` | Optimized hyperparameter version |
@@ -176,7 +176,7 @@ Advanced training approaches beyond the basic three-phase strategy.
 | `train_dna_rna_hybrid_idp_val_optimized.py` | Optimized hyperparameter version |
 | `train_multitask_unified.py` | Single model with shared encoder + 3 task-specific heads for all binding types simultaneously |
 | `train_multitask_balanced.py` | Multi-task model with custom batch sampler enforcing equal representation per task per batch |
-| `train_finetune.py` | Two-stage fine-tuning: pre-train on structured data, then fine-tune on DisProt |
+| `train_finetune.py` | Two-stage sequential training: pre-train on structured data, then continue training on DisProt |
 
 ---
 

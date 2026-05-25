@@ -4,9 +4,9 @@
 
 ![Binding site prediction on a disordered protein sequence](figures/binding-site.svg)
 
-This project investigates whether **hybrid training** — combining binding site 
+This project investigates whether **hybrid training** - combining binding site 
 data from large structured-protein databases with IDP-specific annotations from 
-DisProt — improves binding site prediction in intrinsically disordered protein 
+DisProt - improves binding site prediction in intrinsically disordered protein 
 (IDP) regions. IDPs lack stable 3D structure but play key roles in signaling, 
 regulation, and molecular recognition. Because structure-based predictors 
 cannot be applied to them, sequence-based approaches are required.
@@ -14,7 +14,7 @@ cannot be applied to them, sequence-based approaches are required.
 We predict per-residue binding probability for three binding types: 
 **protein–protein**, **DNA/RNA**, and **ion** binding sites. Models use 
 [ESM-2](https://github.com/facebookresearch/esm) protein language model 
-embeddings (1280-dimensional, per-residue) as input — purely sequence-based, 
+embeddings (1280-dimensional, per-residue) as input - purely sequence-based, 
 so applicable to both structured and disordered proteins.
 
 ## Table of Contents
@@ -45,7 +45,7 @@ throughout all documentation as **Phase 1**, **Phase 2**, and **Phase 3**):
 |-------|--------------|-----------------|---------|
 | **Phase 1** | Structured only (AHoJ-DB / BioLiP / ScanNet) | Structured val set | Structured-data baseline |
 | **Phase 2** | DisProt (IDP) only | DisProt val set | IDP-only baseline |
-| **Phase 3 — Hybrid** | Structured + DisProt | DisProt val set | Main approach |
+| **Phase 3 - Hybrid** | Structured + DisProt | DisProt val set | Main approach |
 
 In Phase 3, the model is trained on both data sources but validated on DisProt 
 sequences only - ensuring the saved checkpoint is selected for IDP performance, 
@@ -166,7 +166,7 @@ Full preparation pipeline: [docs/1-data_preparation.md](docs/1-data_preparation.
 
 Each binding type is trained in three phases (see [Research Hypothesis](#research-hypothesis)).  
 A simple four-layer MLP on ESM-2 embeddings is used as the primary model, chosen 
-after benchmarking against Bi-LSTM, Bi-GRU, and 1D CNN alternatives — all of 
+after benchmarking against Bi-LSTM, Bi-GRU, and 1D CNN alternatives - all of 
 which underperformed while training 2–6× slower.
 
 Two multi-task variants were also tested: one with a single shared encoder and 
@@ -183,21 +183,21 @@ Neither variant outperformed the per-task individual models.
 Replace `ion` / `dna_rna` / `protein` as needed. Each `.py` script has a 
 corresponding `.sh` SLURM submission file.
 
-**Phase 1 — Train on structured data only:**
+**Phase 1 - Train on structured data only:**
 ```bash
 python src/base_codes/train_ion_phase1.py
 python src/base_codes/train_dna_rna_phase1.py
 python src/base_codes/train_phase1_esm.py       # protein-protein
 ```
 
-**Phase 2 — Train on DisProt (IDP) data only:**
+**Phase 2 - Train on DisProt (IDP) data only:**
 ```bash
 python src/base_codes/train_ion_phase2.py
 python src/base_codes/train_dna_rna_phase2.py
 python src/base_codes/train_phase2_esm.py
 ```
 
-**Phase 3 — Hybrid training, validated on DisProt only (main result):**
+**Phase 3 - Hybrid training, validated on DisProt only (main result):**
 ```bash
 python src/training_scripts/train_ion_hybrid_idp_val_optimized.py
 python src/training_scripts/train_dna_rna_hybrid_idp_val_optimized.py
@@ -216,7 +216,7 @@ python src/training_scripts/train_finetune.py
 ```
 
 > **Note:** Embedding generation must be completed before any training script 
-> is run — see [docs/1-data_preparation.md](docs/1-data_preparation.md). All 
+> is run - see [docs/1-data_preparation.md](docs/1-data_preparation.md). All 
 > scripts are designed for a SLURM cluster. To run locally, update the data 
 > paths in `config.yaml`.
 

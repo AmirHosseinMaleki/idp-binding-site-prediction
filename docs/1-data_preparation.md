@@ -1,8 +1,6 @@
 # Data Preparation Guide
 
-This document describes the full data preparation pipeline for all three binding types: ion binding (AHoJ-DB), DNA/RNA binding (BioLiP + DisProt), and protein-protein binding (ScanNet + DisProt).
-
-All scripts assume you are working from the repository root. Training scripts are designed to run on a SLURM cluster; adjust paths in the scripts if running locally.
+This document has three sections, each covering the data pipeline for one binding type: ion binding (AHoJ-DB + DisProt), DNA/RNA binding (BioLiP + DisProt), and protein-protein binding (ScanNet + DisProt). All scripts assume you are working from the repository root. Training scripts are designed to run on a SLURM cluster; to run locally, adjust paths in config.yaml
 
 ---
 
@@ -36,7 +34,7 @@ All datasets must be downloaded manually before running any preparation scripts.
 ### Step 1: Download AHoJ-DB
 
 Download the full archive from [https://apoholo.cz/db/archive](https://apoholo.cz/db/archive). Extract into `data/ahojdb/`. You will need:
-- `ligand.tsv` — ligand metadata with SMILES strings
+- `ligand.tsv` - ligand metadata with SMILES strings
 - Per-entry subdirectories containing `pocket_residues.csv` files
 
 ### Step 2: Identify Ion Ligands
@@ -48,7 +46,7 @@ python src/staticp_old/1_filter_ions.py
 ```
 
 **Input:** `data/ahojdb/ligand.tsv`  
-**Output:** `ions.txt` — list of ion codes (e.g., ZN, MG, CA)  
+**Output:** `ions.txt` - list of ion codes (e.g., ZN, MG, CA)  
 **Logic:** Keeps ligands with formal charge ≠ 0 and atom count < 2.
 
 ### Step 3: Find Ion-Containing Entries
@@ -71,7 +69,7 @@ python src/staticp_old/3_extract_binding_sites.py
 ```
 
 **Input:** `all_ion_directories.txt`  
-**Output:** `all_binding_sites.txt` — per-entry: PDB ID, chain, ligand, binding residue list
+**Output:** `all_binding_sites.txt` - per-entry: PDB ID, chain, ligand, binding residue list
 
 ### Step 5: Download PDB Structures and Generate Dataset
 
@@ -171,8 +169,8 @@ python src/base_codes/generate_embeddings_ion.py
 ### Step 1: Download BioLiP
 
 Download from [https://aideepmed.com/BioLiP/download.html](https://aideepmed.com/BioLiP/download.html). You need:
-- `protein_nr.fasta` — non-redundant receptor sequences
-- `BioLiP_nr.txt` — annotation file (tab-separated)
+- `protein_nr.fasta` - non-redundant receptor sequences
+- `BioLiP_nr.txt` - annotation file (tab-separated)
 
 Place both files in `data/biolip/`.
 
@@ -218,6 +216,7 @@ python src/prepare_data/cluster_biolip.py
 This script runs the full MMseqs2 clustering pipeline on both DNA and RNA datasets:
 1. Creates FASTA file from all sequences
 2. Runs `mmseqs cluster` at 10% sequence identity, 80% coverage
+    - The 80% coverage requirement ensures clusters contain sequences of comparable length, preventing short fragments from grouping with full-length proteins - a standard practice for this type of clustering.
 3. Selects one representative per cluster
 4. Filters out sequences overlapping with CAID3 test set
 5. Re-splits into 70/15/15
@@ -241,7 +240,7 @@ python src/prepare_data/split_disprot_rna_dna.py
 **Output:** `dna_binding_train.tsv`, `dna_binding_val.tsv`, `dna_binding_test.tsv`, and RNA equivalents  
 **Split:** 70/15/15 random shuffle with seed 42
 
-**DisProt DNA/RNA file format (TSV):** Same format as DisProt ion — `sequence` and comma-separated `labels` columns.
+**DisProt DNA/RNA file format (TSV):** Same format as DisProt ion - `sequence` and comma-separated `labels` columns.
 
 ### Step 6: Generate ESM-2 Embeddings for DNA/RNA
 
@@ -312,6 +311,7 @@ python src/prepare_data/cluster_scannet.py
 This script:
 1. Combines all three splits into one pool for clustering
 2. Creates FASTA and runs MMseqs2 at 10% identity, 80% coverage
+    - The 80% coverage requirement ensures clusters contain sequences of comparable length, preventing short fragments from grouping with full-length proteins - a standard practice for this type of clustering.
 3. Selects one representative per cluster
 4. Filters out sequences overlapping with CAID3 test set
 5. Re-splits into 70/15/15

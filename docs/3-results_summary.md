@@ -111,7 +111,7 @@ All protein sequences were processed through the ESM-2 protein language model (`
 | Model | esm2_t33_650M_UR50D |
 | Embedding layer | 33 (final) |
 | Embedding dimension | 1280 per residue |
-| Maximum sequence length | 2000 residues (longer skipped) |
+| Maximum sequence length | 2000 residues (longer sequences skipped to prevent GPU out-of-memory errors; this is a hardware constraint, not the model's architectural limit) |
 | Output format | .npz (float32 arrays) |
 
 **Why ESM-2:** Structure-based methods cannot be applied to IDPs because disordered regions lack stable 3D coordinates. ESM-2 operates purely on sequence, making it suitable for both structured and disordered proteins. The 650M parameter model provides a strong balance between representation quality and computational cost.
@@ -166,6 +166,12 @@ Two multi-task variants were also implemented and evaluated:
 - **Balanced model** (`src/training_scripts/train_multitask_balanced.py`): Same architecture but with a custom batch sampler that enforces equal representation from each binding type per batch, addressing the severe size imbalance between tasks.
 
 Results showed multi-task models performed comparably to individual models but did not surpass them, suggesting the three binding types do not share enough surface features to benefit from joint training with this architecture.
+
+| Model | Protein AUC | DNA/RNA AUC | Ion AUC |
+|-------|-------------|-------------|---------|
+| Individual (per binding type) | 0.8428 | 0.7071 | 0.8581 |
+| Multi-task unified | 0.8390 | 0.7109 | 0.8445 |
+| Multi-task balanced | 0.8107 | 0.7229 | 0.8294 |
 
 ### Hyperparameter Tuning
 
@@ -224,7 +230,7 @@ The key innovation in Phase 3 is using DisProt-only validation (not mixed) to se
 **Key finding - the hybrid approach validates the research hypothesis across all three binding types:**
 - Phase 3 maintains near-identical performance on structured test sets vs Phase 1 (no negative transfer from adding IDP data)
 - Phase 3 achieves the best or near-best DisProt performance across all three binding types
-- Phase 2 (IDP-only training) consistently collapses on structured test sets, confirming that DisProt data alone is insufficient
+- Phase 2 (IDP-only training) is limited by DisProt's small size and cannot match Phase 3's IDP performance, confirming that structured data provides a useful supplement
 
 ### Final Model Performance (Optimized, DisProt Test Set)
 
@@ -246,15 +252,9 @@ Best models selected by DisProt validation AUC with optimized hyperparameters (L
 
 Grid search optimization produced marginal improvements for protein-protein (+0.0014 AUC) and DNA/RNA (+0.0059 AUC) binding. For ion binding, the optimized model performed slightly worse (-0.0012 AUC), suggesting the default hyperparameters were already well-calibrated for that task.
 
-### Decision Threshold Analysis
+### Analysis
 
-The optimal threshold varied substantially across binding types due to differing class imbalance:
-
-- **Ion (0.15):** Extremely low threshold reflects the severe imbalance in AHoJ-DB (1.5% positive). The model correctly learns to be conservative and the threshold compensates.
-- **DNA/RNA (0.40):** Moderate imbalance, moderate threshold.
-- **Protein-Protein (0.60):** Higher threshold, indicating the model assigns higher probabilities to true positives in this more balanced task.
-
-This confirms that threshold selection on the validation set is essential and that a fixed 0.5 threshold would significantly underperform.
+Thresholds were selected on the validation set by maximising F1 score. The variation across binding types (ion: 0.15, DNA/RNA: 0.40, protein: 0.60) reflects differences in class imbalance and model calibration. A fixed threshold of 0.5 would substantially underperform for ion binding given its extreme class imbalance (1.5% positive).
 
 ---
 
@@ -264,12 +264,14 @@ This confirms that threshold selection on the validation set is essential and th
 
 Documentation covers the full pipeline from raw database downloads through final model evaluation. A runnable demo is provided in `demo/` for reviewers who want to verify predictions without re-running the full pipeline.
 
+The trained models are being submitted to the [CAID3 benchmark challenge](https://caid.idpcentral.org/) for direct comparison with published methods.
+
 ---
 
 ## Overall Conclusions
 
 **1. Hybrid training works consistently across all three binding types.**
-In every case, Phase 3 (hybrid) achieves the best IDP performance while maintaining structured protein performance within 1-2% of the structured-only baseline. This validates the core research hypothesis.
+In every case, Phase 3 (hybrid) achieves the best IDP performance across all three binding types. This validates the core research hypothesis.
 
 **2. MLP is the optimal architecture for ESM-2 embedding-based prediction.**
 More complex architectures (Bi-LSTM, Bi-GRU, 1D CNN) consistently underperform while requiring 2–6× more training time. ESM-2 embeddings are already sequence-context-aware, making additional sequential modelling redundant.
