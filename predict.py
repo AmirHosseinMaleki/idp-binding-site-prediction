@@ -217,6 +217,15 @@ def main():
         protein_id = "input_sequence"
 
     sequence = sequence.upper().strip()
+
+    # J (Leu/Ile) is not in ESM-2's vocabulary — map to L.
+    # All other IUPAC ambiguous codes (B, Z, U, O, X) are handled natively.
+    if "J" in sequence:
+        n_j = sequence.count("J")
+        sequence = sequence.replace("J", "L")
+        print(f"  Note: replaced {n_j} J residue(s) with L (Leu/Ile ambiguity)")
+
+    print(f"  Length:  {len(sequence)} residues")
     print(f"  Length:  {len(sequence)} residues")
 
     # ── Binding type config ───────────────────────────────────────────────────
