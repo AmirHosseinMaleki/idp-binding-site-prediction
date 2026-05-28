@@ -88,6 +88,54 @@ included in `data/` - no additional download is needed.
 
 ---
 
+## CAID Submission
+
+[CAID (Critical Assessment of Intrinsic Disorder Prediction)](https://caid.idpcentral.org/)
+is a community benchmark for evaluating predictors of intrinsic disorder and
+disorder-related functions. We submitted this predictor to CAID4 to benchmark
+it against other state-of-the-art methods on a standardised, independently
+curated test set.
+
+The predictor is available as a Docker image on Docker Hub:
+
+```bash
+docker pull amirhmaleki/idp-binding-caid:latest
+```
+
+CAID evaluates the predictor by pre-computing ESM-2 embeddings and passing them
+to the container. The container accepts a multi-sequence FASTA and a folder of
+per-protein embeddings, and writes per-protein `.caid` output files for all
+three binding types plus a `timings.csv`.
+
+```bash
+docker run \
+  -v /path/to/sequences.fasta:/input/sequences.fasta \
+  -v /path/to/embeddings:/embeddings \
+  -v /path/to/output:/output \
+  amirhmaleki/idp-binding-caid:latest \
+    --fasta /input/sequences.fasta \
+    --embeddings_dir /embeddings \
+    --output_dir /output
+```
+
+**Output structure:**
+```
+output/
+    protein/P04637.caid
+    dna_rna/P04637.caid
+    ion/P04637.caid
+    timings.csv
+```
+
+**Embeddings format:** one `.npy` or `.h5` file per protein, named after the
+protein identifier in the FASTA header (e.g. `>P04637` → `P04637.npy`),
+shape `(L, 1280)` from ESM-2 `esm2_t33_650M_UR50D` layer 33.
+
+The container runs on CPU, requires no internet access, and no GPU is needed.
+See [`predict_caid.py`](predict_caid.py) for the full interface.
+
+---
+
 ## Documentation
 
 Read in this order:
