@@ -297,7 +297,7 @@ def main():
     for binding_type, cfg in BINDING_CONFIG.items():
         model_path = os.path.join(args.model_dir, cfg["model_file"])
         m = BindingNet().to(device)
-        m.load_state_dict(torch.load(model_path, map_location=device))
+        m.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
         m.eval()
         models[binding_type] = m
         print(f"  {binding_type}: {model_path}")
