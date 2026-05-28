@@ -1,38 +1,53 @@
 """
-predict_caid.py — CAID submission entry point.
+predict_caid.py - CAID submission entry point.
 
-CAID will pre-compute ESM-2 embeddings and call this script directly.
-No internet access, no ESM-2, no GPU required.
+Reads a multi-sequence FASTA, loads pre-computed ESM-2 embeddings from a
+folder (one file per protein), runs all three binding-type predictors, and
+writes per-protein .caid files plus a timings.csv.
 
 Usage:
     python predict_caid.py \
-        --embedding_file embeddings.npy \
-        --binding_type protein \
-        --output prediction.tsv
+        --fasta sequences.fasta \
+        --embeddings_dir /path/to/embeddings \
+        --output_dir /path/to/output \
+        --model_dir data/
 
-    python predict_caid.py \
-        --embedding_file embeddings.h5 \
-        --binding_type ion \
-        --output prediction.tsv \
-        --h5_key representations
+CAID will mount the embeddings folder at runtime.  The folder must contain
+one file per protein named <protein_id>.npy or <protein_id>.h5, where
+<protein_id> matches the header in the FASTA file (e.g. ">P04637" → "P04637.npy").
 
-Arguments:
-    --embedding_file  Pre-computed ESM-2 embeddings (.npy or .h5), shape (L, 1280)  [required]
-    --binding_type    One of: protein, dna_rna, ion                                  [required]
-    --output          Output TSV path (default: prediction.tsv)
-    --model_dir       Directory containing trained .pt files (default: models/)
-    --threshold       Override the default decision threshold (optional)
-    --h5_key          Dataset key inside an HDF5 file (default: representations)
+Output structure:
+    <output_dir>/
+        protein/
+            P04637.caid
+            Q15648.caid
+            ...
+        dna_rna/
+            P04637.caid
+            ...
+        ion/
+            P04637.caid
+            ...
+        timings.csv
 
-Output TSV columns:
-    position    1-indexed residue number
-    score       binding probability (0.0 – 1.0)
-    prediction  binary call at the chosen threshold (0 or 1)
+.caid file format (per CAID specification):
+    >P04637
+    1	M	0.8921	1
+    2	E	0.8134	1
+    ...
+
+timings.csv format (per CAID specification):
+    # Running predictor, started <timestamp>
+    sequence,milliseconds
+    P04637,1234
+    ...
 """
 
 import argparse
 import os
 import sys
+import time
+import datetime
 
 import numpy as np
 import torch
@@ -58,14 +73,72 @@ class BindingNet(nn.Module):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Config
+# Config - all three binding types
 # ─────────────────────────────────────────────────────────────────────────────
 
 BINDING_CONFIG = {
-    "protein": {"model_file": "protein_hybrid_idpval_model.pt", "threshold": 0.60},
-    "dna_rna": {"model_file": "dna_rna_hybrid_idpval_model.pt", "threshold": 0.40},
-    "ion":     {"model_file": "ion_hybrid_idpval_model.pt",     "threshold": 0.15},
+    "protein": {
+        "model_file": "protein_hybrid_idpval_model.pt",
+        "threshold":  0.60,
+    },
+    "dna_rna": {
+        "model_file": "dna_rna_hybrid_idpval_model.pt",
+        "threshold":  0.40,
+    },
+    "ion": {
+        "model_file": "ion_hybrid_idpval_model.pt",
+        "threshold":  0.15,
+    },
 }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# FASTA reader - handles multiple sequences
+# ─────────────────────────────────────────────────────────────────────────────
+
+def read_fasta(path):
+    """
+    Read all sequences from a FASTA file.
+    Returns list of (protein_id, sequence) tuples.
+    Protein ID is everything after '>' up to the first whitespace.
+    """
+    proteins = []
+    current_id, current_seq = None, []
+
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith(">"):
+                if current_id is not None:
+                    proteins.append((current_id, "".join(current_seq)))
+                # take only the first word as the ID (e.g. ">P04637 human p53" → "P04637")
+                current_id = line[1:].split()[0]
+                current_seq = []
+            else:
+                current_seq.append(line.upper())
+
+    if current_id is not None:
+        proteins.append((current_id, "".join(current_seq)))
+
+    return proteins
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Sequence normalisation
+# ─────────────────────────────────────────────────────────────────────────────
+
+def normalise_sequence(seq):
+    """
+    Handle IUPAC ambiguous residue codes.
+    B, Z, U, O, X are in ESM-2's vocabulary natively.
+    J (Leu/Ile) is not - map to L (standard convention).
+    """
+    seq = seq.upper().strip()
+    if "J" in seq:
+        seq = seq.replace("J", "L")
+    return seq
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -79,36 +152,54 @@ def load_npy(path):
     return emb.astype(np.float32)
 
 
-def load_h5(path, key):
+def load_h5(path):
     try:
         import h5py
     except ImportError:
         print("ERROR: h5py is required for .h5 files.  pip install h5py")
         sys.exit(1)
     with h5py.File(path, "r") as f:
-        if key not in f:
-            raise KeyError(f"Key '{key}' not in {path}. Available: {list(f.keys())}")
-        emb = f[key][()]
+        keys = list(f.keys())
+        if len(keys) == 0:
+            raise ValueError(f"No datasets found in {path}")
+        # try common key names, fall back to first available
+        for candidate in ["representations", "embeddings", keys[0]]:
+            if candidate in f:
+                emb = f[candidate][()]
+                break
     if emb.ndim != 2 or emb.shape[1] != 1280:
         raise ValueError(f"Expected shape (L, 1280), got {emb.shape}")
     return emb.astype(np.float32)
 
 
-def load_embeddings(path, h5_key):
-    ext = os.path.splitext(path)[1].lower()
+def find_embedding(embeddings_dir, protein_id):
+    """
+    Look for <protein_id>.npy or <protein_id>.h5 in embeddings_dir.
+    Returns (path, format) or raises FileNotFoundError.
+    """
+    for ext in (".npy", ".h5", ".hdf5"):
+        path = os.path.join(embeddings_dir, protein_id + ext)
+        if os.path.exists(path):
+            return path, ext
+    raise FileNotFoundError(
+        f"No embedding found for '{protein_id}' in {embeddings_dir}. "
+        f"Expected: {protein_id}.npy or {protein_id}.h5"
+    )
+
+
+def load_embedding(embeddings_dir, protein_id):
+    path, ext = find_embedding(embeddings_dir, protein_id)
     if ext == ".npy":
         return load_npy(path)
-    elif ext in (".h5", ".hdf5"):
-        return load_h5(path, h5_key)
     else:
-        raise ValueError(f"Unsupported extension '{ext}'. Use .npy or .h5")
+        return load_h5(path)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Prediction
 # ─────────────────────────────────────────────────────────────────────────────
 
-def predict(embeddings, model, threshold, device, batch_size=2048):
+def run_prediction(embeddings, model, threshold, device, batch_size=2048):
     model.eval()
     parts = []
     t = torch.tensor(embeddings, dtype=torch.float32)
@@ -121,115 +212,152 @@ def predict(embeddings, model, threshold, device, batch_size=2048):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Output writers
+# ─────────────────────────────────────────────────────────────────────────────
+
+def write_caid(output_path, protein_id, sequence, scores, binary):
+    """
+    Write a .caid file in the CAID-specified format:
+        >P04637
+        1	M	0.8921	1
+        2	E	0.8134	1
+        ...
+    """
+    with open(output_path, "w") as f:
+        f.write(f">{protein_id}\n")
+        for i, (aa, score, label) in enumerate(zip(sequence, scores, binary), start=1):
+            f.write(f"{i}\t{aa}\t{score:.4f}\t{label}\n")
+
+
+def write_timings(output_path, timings, start_time):
+    """
+    Write timings.csv in the CAID-specified format.
+    timings: list of (protein_id, milliseconds)
+    """
+    timestamp = datetime.datetime.fromtimestamp(start_time).strftime(
+        "%a %b %d %H:%M:%S %Z %Y"
+    )
+    with open(output_path, "w") as f:
+        f.write(f"# Running predictor, started {timestamp}\n")
+        f.write("sequence,milliseconds\n")
+        for protein_id, ms in timings:
+            f.write(f"{protein_id},{ms}\n")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Main
 # ─────────────────────────────────────────────────────────────────────────────
 
-def read_fasta(path):
-    """Return (header, sequence) for the first entry in a FASTA file."""
-    header, seq_lines = None, []
-    with open(path) as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            if line.startswith(">"):
-                if header is not None:
-                    break
-                header = line[1:]
-            else:
-                seq_lines.append(line)
-    if header is None:
-        raise ValueError(f"No FASTA entries found in {path}")
-    return header, "".join(seq_lines)
-
-
-def normalise_sequence(seq):
-    """
-    Handle IUPAC ambiguous residue codes.
-    B, Z, U, O, X are in ESM-2's vocabulary natively.
-    J (Leu/Ile) is not — map to L (standard convention).
-    """
-    seq = seq.upper().strip()
-    if "J" in seq:
-        n_j = seq.count("J")
-        seq = seq.replace("J", "L")
-        print(f"  Note: replaced {n_j} J residue(s) with L (Leu/Ile ambiguity)")
-    return seq
-
-
 def main():
     parser = argparse.ArgumentParser(
-        description="IDP binding site predictor — CAID submission interface."
+        description=(
+            "IDP binding site predictor - CAID submission interface.\n"
+            "Processes all sequences in a FASTA file and writes per-protein\n"
+            ".caid files for protein, dna_rna, and ion binding."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--embedding_file", required=True,
-                        help="Pre-computed ESM-2 embeddings (.npy or .h5, shape L×1280).")
-    parser.add_argument("--fasta", default=None,
-                        help="Optional FASTA file. Used only to annotate output residues.")
-    parser.add_argument("--binding_type", required=True, choices=["protein", "dna_rna", "ion"])
-    parser.add_argument("--output",    default="prediction.tsv")
-    parser.add_argument("--model_dir", default="data",
-                        help="Directory containing .pt weight files (default: data/).")
-    parser.add_argument("--threshold", type=float, default=None,
-                        help="Override the default decision threshold.")
-    parser.add_argument("--h5_key",   default="representations",
-                        help="Dataset key inside an HDF5 file (default: representations).")
+    parser.add_argument(
+        "--fasta", required=True,
+        help="Input FASTA file containing one or more protein sequences.",
+    )
+    parser.add_argument(
+        "--embeddings_dir", required=True,
+        help=(
+            "Directory containing pre-computed ESM-2 embeddings. "
+            "One file per protein, named <protein_id>.npy or <protein_id>.h5."
+        ),
+    )
+    parser.add_argument(
+        "--output_dir", default="output",
+        help="Directory to write .caid output files and timings.csv (default: output/).",
+    )
+    parser.add_argument(
+        "--model_dir", default="data",
+        help="Directory containing trained .pt weight files (default: data/).",
+    )
+
     args = parser.parse_args()
 
-    cfg       = BINDING_CONFIG[args.binding_type]
-    threshold = args.threshold if args.threshold is not None else cfg["threshold"]
-    model_path = os.path.join(args.model_dir, cfg["model_file"])
+    # ── validate model files exist ────────────────────────────────────────────
+    for binding_type, cfg in BINDING_CONFIG.items():
+        model_path = os.path.join(args.model_dir, cfg["model_file"])
+        if not os.path.exists(model_path):
+            print(f"ERROR: model not found: {os.path.abspath(model_path)}")
+            print("Use --model_dir to point to the directory containing .pt files.")
+            sys.exit(1)
 
-    if not os.path.exists(model_path):
-        print(f"ERROR: model not found: {os.path.abspath(model_path)}")
-        print("Use --model_dir to point to the directory containing .pt files.")
-        sys.exit(1)
-
+    # ── device ────────────────────────────────────────────────────────────────
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Device: {device}")
 
-    # ── optional sequence ─────────────────────────────────────────────────────
-    sequence = None
-    if args.fasta:
-        _, raw = read_fasta(args.fasta)
-        sequence = normalise_sequence(raw)
-        print(f"Sequence     : {len(sequence)} residues (from {args.fasta})")
+    # ── load all three models once ────────────────────────────────────────────
+    print("Loading models...")
+    models = {}
+    for binding_type, cfg in BINDING_CONFIG.items():
+        model_path = os.path.join(args.model_dir, cfg["model_file"])
+        m = BindingNet().to(device)
+        m.load_state_dict(torch.load(model_path, map_location=device))
+        m.eval()
+        models[binding_type] = m
+        print(f"  {binding_type}: {model_path}")
 
-    print(f"Binding type : {args.binding_type}")
-    print(f"Model        : {model_path}")
-    print(f"Threshold    : {threshold}")
-    print(f"Device       : {device}")
+    # ── create output directories ─────────────────────────────────────────────
+    for binding_type in BINDING_CONFIG:
+        os.makedirs(os.path.join(args.output_dir, binding_type), exist_ok=True)
 
-    print(f"\nLoading embeddings: {args.embedding_file}")
-    try:
-        embeddings = load_embeddings(args.embedding_file, args.h5_key)
-    except (ValueError, KeyError) as e:
-        print(f"ERROR: {e}")
-        sys.exit(1)
-    print(f"  Shape: {embeddings.shape}")
+    # ── read FASTA ────────────────────────────────────────────────────────────
+    print(f"\nReading FASTA: {args.fasta}")
+    proteins = read_fasta(args.fasta)
+    print(f"  {len(proteins)} sequence(s) found.")
 
-    # warn if sequence and embedding lengths disagree
-    if sequence is not None and len(sequence) != len(embeddings):
-        print(f"WARNING: sequence length ({len(sequence)}) != embedding length "
-              f"({len(embeddings)}). Residue annotation will be skipped.")
-        sequence = None
+    # ── process each protein ──────────────────────────────────────────────────
+    timings = []
+    run_start = time.time()
 
-    model = BindingNet().to(device)
-    model.load_state_dict(torch.load(model_path, map_location=device))
+    for protein_id, raw_sequence in proteins:
+        sequence = normalise_sequence(raw_sequence)
+        print(f"\n[{protein_id}] length={len(sequence)}")
 
-    scores, binary = predict(embeddings, model, threshold, device)
+        t_start = time.time()
 
-    os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
-    with open(args.output, "w") as f:
-        if sequence is not None:
-            f.write("position\tresidue\tscore\tprediction\n")
-            for i, (aa, s, b) in enumerate(zip(sequence, scores, binary), start=1):
-                f.write(f"{i}\t{aa}\t{s:.4f}\t{b}\n")
-        else:
-            f.write("position\tscore\tprediction\n")
-            for i, (s, b) in enumerate(zip(scores, binary), start=1):
-                f.write(f"{i}\t{s:.4f}\t{b}\n")
+        # load embedding
+        try:
+            embeddings = load_embedding(args.embeddings_dir, protein_id)
+        except FileNotFoundError as e:
+            print(f"  WARNING: {e} - skipping.")
+            continue
+        except ValueError as e:
+            print(f"  WARNING: bad embedding for {protein_id}: {e} - skipping.")
+            continue
 
-    print(f"\nDone. {int(binary.sum())}/{len(scores)} residues predicted as binding.")
-    print(f"Output: {args.output}")
+        # sanity check: embedding length should match sequence length
+        if len(embeddings) != len(sequence):
+            print(
+                f"  WARNING: embedding length ({len(embeddings)}) != "
+                f"sequence length ({len(sequence)}) - skipping."
+            )
+            continue
+
+        # run all three predictors and write output
+        for binding_type, cfg in BINDING_CONFIG.items():
+            scores, binary = run_prediction(
+                embeddings, models[binding_type], cfg["threshold"], device
+            )
+            out_path = os.path.join(args.output_dir, binding_type, f"{protein_id}.caid")
+            write_caid(out_path, protein_id, sequence, scores, binary)
+            n_binding = int(binary.sum())
+            print(f"  {binding_type}: {n_binding}/{len(sequence)} binding → {out_path}")
+
+        elapsed_ms = int((time.time() - t_start) * 1000)
+        timings.append((protein_id, elapsed_ms))
+        print(f"  Time: {elapsed_ms} ms")
+
+    # ── write timings ─────────────────────────────────────────────────────────
+    timings_path = os.path.join(args.output_dir, "timings.csv")
+    write_timings(timings_path, timings, run_start)
+    print(f"\nTimings written to: {timings_path}")
+    print(f"Done. Processed {len(timings)}/{len(proteins)} sequences.")
 
 
 if __name__ == "__main__":
