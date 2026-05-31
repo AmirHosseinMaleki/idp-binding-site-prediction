@@ -156,7 +156,7 @@ Four architectures were evaluated on the protein-protein binding task (DisProt t
 | Bi-LSTM | -0.0214 | -0.0446 | -0.0426 | -0.0283 |
 | Bi-GRU | -0.0145 | -0.0391 | -0.0291 | -0.0194 |
 
-**Finding:** MLP outperforms all recurrent and convolutional alternatives on every metric and trains 1.5–6× faster. This is consistent with the nature of the input: ESM-2 embeddings are already rich per-residue representations that encode sequential context internally. Adding explicit sequential modelling (LSTM/GRU) or local pattern detection (CNN) on top provides no benefit - the ESM-2 model has already captured those patterns during pre-training.
+**Finding:** MLP outperforms all recurrent and convolutional alternatives on every metric and trains 1.5-6× faster. This is consistent with the nature of the input: ESM-2 embeddings are already rich per-residue representations that encode sequential context internally. Adding explicit sequential modelling (LSTM/GRU) or local pattern detection (CNN) on top provides no benefit - the ESM-2 model has already captured those patterns during pre-training.
 
 ### Multi-Task Learning
 
@@ -184,7 +184,7 @@ A grid search was performed for protein-protein binding (`src/parameter_testing/
 | Weight decay | 0.001, 0.01, 0.05 | **0.001** |
 | Batch size | 256, 512 | **512** |
 
-Total configurations tested: 54 (3 LR × 3 dropout × 3 WD × 2 batch size). Optimal epoch count was determined separately using `src/optimal_epoch_testing/find_optimal_epochs.py`, which trained up to 50 epochs and selected the epoch with highest validation AUC. Optimal epoch was consistently in the range of 3–5 for all binding types, with 15–20 epochs used as a safe upper bound with early stopping via best-model checkpointing.
+Total configurations tested: 54 (3 LR × 3 dropout × 3 WD × 2 batch size). Optimal epoch count was determined separately using `src/optimal_epoch_testing/find_optimal_epochs.py`, which trained up to 50 epochs and selected the epoch with highest validation AUC. Optimal epoch was consistently in the range of 3-5 for all binding types, with 15-20 epochs used as a safe upper bound with early stopping via best-model checkpointing.
 
 ---
 
@@ -260,7 +260,7 @@ Thresholds were selected on the validation set by maximising F1 score. The varia
 
 ## Task 5: Research Documentation
 
-**Implementation:** This document, [README.md](../README.md), [docs/data_preparation.md](data_preparation.md), [docs/code_architecture.md](code_architecture.md)
+**Implementation:** This document, [README.md](../README.md), [docs/1-data_preparation.md](1-data_preparation.md), [docs/2-code_architecture.md](2-code_architecture.md)
 
 Documentation covers the full pipeline from raw database downloads through final model evaluation. A runnable demo is provided in `demo/` for reviewers who want to verify predictions without re-running the full pipeline.
 
@@ -274,13 +274,13 @@ The trained models are being submitted to the [CAID3 benchmark challenge](https:
 In every case, Phase 3 (hybrid) achieves the best IDP performance across all three binding types. This validates the core research hypothesis.
 
 **2. MLP is the optimal architecture for ESM-2 embedding-based prediction.**
-More complex architectures (Bi-LSTM, Bi-GRU, 1D CNN) consistently underperform while requiring 2–6× more training time. ESM-2 embeddings are already sequence-context-aware, making additional sequential modelling redundant.
+More complex architectures (Bi-LSTM, Bi-GRU, 1D CNN) consistently underperform while requiring 2-6× more training time. ESM-2 embeddings are already sequence-context-aware, making additional sequential modelling redundant.
 
 **3. IDP-only training cannot replace hybrid training.**
 Phase 2 models trained exclusively on DisProt collapse on structured test sets (e.g., ion binding Phase 2: AHoJ-DB AUC 0.5679 vs 0.9764 for Phase 1). The limited size of DisProt training data (hundreds of proteins vs hundreds of thousands in structured databases) leads to overfitting to IDP characteristics.
 
 **4. ESM-2 embeddings transfer well from structured to disordered proteins.**
-The fact that a model trained primarily on structured proteins (Phase 1) already achieves reasonable IDP performance (protein AUC 0.7187, ion AUC 0.8111) suggests ESM-2 captures sequence features relevant to binding regardless of structural order.
+The fact that a model trained primarily on structured proteins (Phase 1) already achieves reasonable IDP performance (protein AUC 0.7187, ion AUC 0.8111) suggests either that ESM-2 captures sequence features relevant to binding regardless of structural order, or that the underlying sequence patterns at binding sites are similar between structured and disordered regions.
 
 **5. Ion binding achieves the best overall IDP performance (AUC 0.8581).**
 This is likely because ion binding involves a small number of chemically well-defined contact residues (coordinating atoms), making it an inherently more learnable pattern than the broader interaction surfaces of protein-protein or DNA/RNA binding.

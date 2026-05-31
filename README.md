@@ -104,8 +104,7 @@ docker pull amirhmaleki/idp-binding-caid:latest
 
 CAID evaluates the predictor by pre-computing ESM-2 embeddings and passing them
 to the container. The container accepts a multi-sequence FASTA and a folder of
-per-protein embeddings, and writes per-protein `.caid` output files for all
-three binding types plus a `timings.csv`.
+per-protein embeddings, and writes per-protein .caid output files for all three binding types plus a timings.csv (per-protein prediction times, required by the CAID submission format).
 
 ```bash
 docker run \
