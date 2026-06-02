@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IDP Binding Site Prediction — 1WVL Chain A</title>
+  <title>IDP Binding Site Prediction — DP04219 / O95433 (AHSA1)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ngl/2.0.0-dev.36/ngl.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -12,27 +12,21 @@
       background: #1a1a2e; color: #e0e0e0;
       display: flex; flex-direction: column; height: 100vh;
     }
-
     header {
       padding: 14px 24px;
       background: #16213e;
       border-bottom: 1px solid #0f3460;
       display: flex; align-items: center; gap: 16px;
     }
-    header h1 { font-size: 1.1rem; font-weight: 600; color: #e0e0e0; }
-    header p  { font-size: 0.82rem; color: #9ca3af; }
-
-    .main {
-      display: flex; flex: 1; overflow: hidden;
+    header h1 { font-size: 1.05rem; font-weight: 600; color: #e0e0e0; }
+    header p  { font-size: 0.8rem; color: #9ca3af; margin-top: 2px; }
+    .badge {
+      display: inline-block; font-size: 0.68rem; padding: 2px 8px;
+      border-radius: 10px; background: #0f3460; color: #60a5fa;
+      margin-left: 8px; vertical-align: middle;
     }
-
-    /* ── 3D viewer ── */
-    #viewport {
-      flex: 1;
-      background: #0d1117;
-    }
-
-    /* ── Right panel ── */
+    .main { display: flex; flex: 1; overflow: hidden; }
+    #viewport { flex: 1; background: #0d1117; position: relative; }
     .panel {
       width: 320px; min-width: 280px;
       background: #16213e;
@@ -40,30 +34,21 @@
       display: flex; flex-direction: column;
       overflow: hidden;
     }
-
     .panel-section {
       padding: 14px 16px;
       border-bottom: 1px solid #0f3460;
     }
     .panel-section h3 {
-      font-size: 0.78rem; text-transform: uppercase;
+      font-size: 0.75rem; text-transform: uppercase;
       letter-spacing: 0.08em; color: #6b7280; margin-bottom: 10px;
     }
-
-    /* Stats grid */
     .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .stat  {
-      background: #0f3460; border-radius: 6px; padding: 8px 10px;
-    }
-    .stat-val  { font-size: 1.3rem; font-weight: 700; color: #60a5fa; }
-    .stat-label{ font-size: 0.72rem; color: #9ca3af; margin-top: 2px; }
-
-    /* Legend */
-    .legend { display: flex; flex-direction: column; gap: 6px; }
-    .legend-row { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
+    .stat  { background: #0f3460; border-radius: 6px; padding: 8px 10px; }
+    .stat-val   { font-size: 1.25rem; font-weight: 700; color: #60a5fa; }
+    .stat-label { font-size: 0.7rem; color: #9ca3af; margin-top: 2px; }
+    .legend { display: flex; flex-direction: column; gap: 5px; }
+    .legend-row { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; }
     .swatch { width: 16px; height: 16px; border-radius: 3px; flex-shrink: 0; }
-
-    /* Controls */
     .controls { display: flex; flex-direction: column; gap: 8px; }
     label { font-size: 0.8rem; color: #d1d5db; }
     select, button {
@@ -73,11 +58,17 @@
     }
     button { background: #0f3460; font-weight: 600; }
     button:hover { background: #1e4d8c; }
-
-    /* Score bar chart */
+    .toggle-row { display: flex; gap: 6px; }
+    .toggle-btn {
+      flex: 1; padding: 6px 4px; border-radius: 5px;
+      border: 1px solid #0f3460; background: #0d1117;
+      color: #9ca3af; font-size: 0.75rem; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .toggle-btn.active { background: #1e4d8c; color: #e0e0e0; border-color: #60a5fa; }
     .score-chart { flex: 1; overflow-y: auto; padding: 10px 16px; }
     .score-chart h3 {
-      font-size: 0.78rem; text-transform: uppercase;
+      font-size: 0.75rem; text-transform: uppercase;
       letter-spacing: 0.08em; color: #6b7280; margin-bottom: 8px;
       position: sticky; top: 0; background: #16213e; padding: 4px 0;
     }
@@ -86,23 +77,23 @@
       margin-bottom: 2px; cursor: pointer;
     }
     .bar-row:hover { opacity: 0.8; }
-    .bar-pos  { width: 28px; text-align: right; font-size: 0.7rem; color: #6b7280; flex-shrink:0; }
-    .bar-aa   { width: 14px; font-size: 0.7rem; color: #9ca3af; flex-shrink:0; }
+    .bar-pos  { width: 28px; text-align: right; font-size: 0.68rem; color: #6b7280; flex-shrink:0; }
+    .bar-aa   { width: 14px; font-size: 0.68rem; color: #9ca3af; flex-shrink:0; }
     .bar-bg   { flex: 1; height: 10px; background: #0d1117; border-radius: 2px; overflow:hidden; }
     .bar-fill { height: 100%; border-radius: 2px; }
-    .bar-score{ width: 36px; text-align: right; font-size: 0.68rem; color: #6b7280; flex-shrink:0; }
+    .bar-score{ width: 36px; text-align: right; font-size: 0.66rem; color: #6b7280; flex-shrink:0; }
     .bar-true { width: 8px; height: 8px; border-radius: 50%; flex-shrink:0; }
-
-    /* Threshold slider */
     input[type=range] { width: 100%; accent-color: #60a5fa; }
     .slider-row {
       display: flex; justify-content: space-between;
-      font-size: 0.75rem; color: #9ca3af; margin-top: 2px;
+      font-size: 0.72rem; color: #9ca3af; margin-top: 2px;
     }
-
-    .loading {
+    .note {
+      font-size: 0.7rem; color: #6b7280; margin-top: 6px; line-height: 1.4;
+    }
+    #loading {
       position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translate(-50%,-50%);
       color: #60a5fa; font-size: 0.9rem; pointer-events: none;
     }
   </style>
@@ -111,14 +102,16 @@
 
 <header>
   <div>
-    <h1>IDP Binding Site Prediction — 1WVL (Chain A)</h1>
-    <p>Hybrid MLP model · ESM-2 embeddings · Protein-protein binding</p>
+    <h1>IDP Binding Site Prediction
+      <span class="badge">CAID benchmark · DP04219</span>
+    </h1>
+    <p>Activator of Hsp90 ATPase (AHSA1) · UniProt O95433 · AlphaFold structure · Protein–protein binding</p>
   </div>
 </header>
 
 <div class="main">
   <div id="viewport">
-    <div class="loading" id="loading">Loading structure from RCSB...</div>
+    <div id="loading">Loading AlphaFold structure...</div>
   </div>
 
   <div class="panel">
@@ -128,48 +121,53 @@
       <h3>Summary</h3>
       <div class="stats">
         <div class="stat">
-          <div class="stat-val" id="stat-len">80</div>
+          <div class="stat-val">338</div>
           <div class="stat-label">Residues</div>
         </div>
         <div class="stat">
-          <div class="stat-val" id="stat-pred">43</div>
+          <div class="stat-val" id="stat-pred">76</div>
           <div class="stat-label">Predicted binding</div>
         </div>
         <div class="stat">
-          <div class="stat-val">24</div>
-          <div class="stat-label">True binding</div>
+          <div class="stat-val">27</div>
+          <div class="stat-label">True binding (CAID)</div>
         </div>
         <div class="stat">
-          <div class="stat-val" id="stat-pct">54%</div>
+          <div class="stat-val" id="stat-pct">22%</div>
           <div class="stat-label">% predicted</div>
         </div>
       </div>
     </div>
 
-    <!-- Legend -->
+    <!-- Color mode toggle -->
     <div class="panel-section">
+      <h3>Color Mode</h3>
+      <div class="toggle-row">
+        <button class="toggle-btn active" id="btn-binding">Binding score</button>
+        <button class="toggle-btn" id="btn-plddt">AlphaFold pLDDT</button>
+      </div>
+      <p class="note" id="color-note">Residues colored by predicted binding probability (red = high, blue = low).</p>
+    </div>
+
+    <!-- Legend -->
+    <div class="panel-section" id="legend-binding">
       <h3>Color Scale — Binding Probability</h3>
       <div class="legend">
-        <div class="legend-row">
-          <div class="swatch" style="background:#1e3a5f"></div>
-          <span>0.0 – 0.2 · Very low</span>
-        </div>
-        <div class="legend-row">
-          <div class="swatch" style="background:#2563eb"></div>
-          <span>0.2 – 0.4 · Low</span>
-        </div>
-        <div class="legend-row">
-          <div class="swatch" style="background:#f59e0b"></div>
-          <span>0.4 – 0.6 · Moderate</span>
-        </div>
-        <div class="legend-row">
-          <div class="swatch" style="background:#ef4444"></div>
-          <span>0.6 – 1.0 · High (predicted binding)</span>
-        </div>
-        <div class="legend-row">
-          <div class="swatch" style="background:#22c55e; border:2px solid #16a34a"></div>
-          <span>● True binding residue</span>
-        </div>
+        <div class="legend-row"><div class="swatch" style="background:#1e3a5f"></div><span>0.0 – 0.2 · Very low</span></div>
+        <div class="legend-row"><div class="swatch" style="background:#2563eb"></div><span>0.2 – 0.4 · Low</span></div>
+        <div class="legend-row"><div class="swatch" style="background:#f59e0b"></div><span>0.4 – 0.6 · Moderate</span></div>
+        <div class="legend-row"><div class="swatch" style="background:#ef4444"></div><span>0.6 – 1.0 · High (predicted binding)</span></div>
+        <div class="legend-row"><div class="swatch" style="background:#22c55e; border:2px solid #16a34a"></div><span>● True binding residue (CAID)</span></div>
+      </div>
+    </div>
+
+    <div class="panel-section" id="legend-plddt" style="display:none">
+      <h3>Color Scale — AlphaFold pLDDT</h3>
+      <div class="legend">
+        <div class="legend-row"><div class="swatch" style="background:#003f88"></div><span>90 – 100 · Very high confidence (structured)</span></div>
+        <div class="legend-row"><div class="swatch" style="background:#4cb8e0"></div><span>70 – 90 · Confident</span></div>
+        <div class="legend-row"><div class="swatch" style="background:#f5d03b"></div><span>50 – 70 · Low confidence</span></div>
+        <div class="legend-row"><div class="swatch" style="background:#ff7d45"></div><span>&lt; 50 · Very low — likely disordered</span></div>
       </div>
     </div>
 
@@ -201,28 +199,31 @@
 
     <!-- Per-residue score bars -->
     <div class="score-chart">
-      <h3>Per-Residue Scores <span style="color:#22c55e;font-size:0.7em;">● true binding</span></h3>
+      <h3>Per-Residue Scores <span style="color:#22c55e;font-size:0.7em;">● true binding (CAID)</span></h3>
       <div id="bar-container"></div>
     </div>
 
-  </div><!-- /panel -->
-</div><!-- /main -->
+  </div>
+</div>
 
 <script>
 // ── Data ──────────────────────────────────────────────────────────────────────
-const SCORES     = [0.5697, 0.4902, 0.3860, 0.3553, 0.5956, 0.4169, 0.6979, 0.7272, 0.4913, 0.3360, 0.4748, 0.4455, 0.4151, 0.4918, 0.5776, 0.2834, 0.3903, 0.2772, 0.1924, 0.5232, 0.7530, 0.7640, 0.8202, 0.8467, 0.7302, 0.6979, 0.6148, 0.5265, 0.7418, 0.1817, 0.7317, 0.7455, 0.7867, 0.7898, 0.4420, 0.3343, 0.3940, 0.4827, 0.7075, 0.7758, 0.5502, 0.8386, 0.6590, 0.7782, 0.3697, 0.5793, 0.3191, 0.5803, 0.4288, 0.4080, 0.7436, 0.2694, 0.6062, 0.5437, 0.3325, 0.4322, 0.6609, 0.7905, 0.4419, 0.6390, 0.8320, 0.8288, 0.7309, 0.8304, 0.8673, 0.6501, 0.5896, 0.8912, 0.8695, 0.7710, 0.8361, 0.8973, 0.7714, 0.7422, 0.8607, 0.8699, 0.7948, 0.8634, 0.8242, 0.6676];
-const PREDICTED  = [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
-const TRUE_LABELS= [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1];
-const RESIDUES   = ['M', 'V', 'K', 'V', 'K', 'F', 'K', 'Y', 'K', 'G', 'E', 'E', 'K', 'E', 'V', 'D', 'T', 'S', 'K', 'I', 'K', 'K', 'V', 'W', 'R', 'V', 'G', 'K', 'M', 'V', 'S', 'F', 'T', 'Y', 'D', 'D', 'N', 'G', 'K', 'T', 'G', 'R', 'G', 'A', 'V', 'S', 'E', 'K', 'D', 'A', 'P', 'K', 'E', 'L', 'L', 'D', 'M', 'L', 'A', 'R', 'A', 'E', 'R', 'E', 'K', 'K', 'G', 'V', 'L', 'K', 'K', 'L', 'R', 'A', 'V', 'E', 'N', 'E', 'L', 'H'];
-const PDB_ID     = "1WVL";
-const CHAIN_ID   = "A";
-const SEQ_LEN    = SCORES.length;
+const SCORES      = [0.6869, 0.5749, 0.7254, 0.7527, 0.6159, 0.5608, 0.5359, 0.5333, 0.5044, 0.7010, 0.6361, 0.5559, 0.5313, 0.4917, 0.5108, 0.5721, 0.4412, 0.5317, 0.6352, 0.6907, 0.7044, 0.5467, 0.6688, 0.6339, 0.6470, 0.6106, 0.6525, 0.4971, 0.5649, 0.2829, 0.4449, 0.1176, 0.1867, 0.2199, 0.5035, 0.0630, 0.2258, 0.2162, 0.1682, 0.0967, 0.1399, 0.1523, 0.2088, 0.1983, 0.1629, 0.1298, 0.1299, 0.1422, 0.1550, 0.1162, 0.0833, 0.1161, 0.1875, 0.0967, 0.1941, 0.1676, 0.2164, 0.2778, 0.2078, 0.2350, 0.2603, 0.2462, 0.2519, 0.4059, 0.2133, 0.3851, 0.5452, 0.4853, 0.6756, 0.4804, 0.6356, 0.6235, 0.6225, 0.5086, 0.4953, 0.5489, 0.6725, 0.6237, 0.6568, 0.6326, 0.4353, 0.6236, 0.1649, 0.3599, 0.0596, 0.2507, 0.0799, 0.2195, 0.1064, 0.1865, 0.0331, 0.0738, 0.0435, 0.1262, 0.1342, 0.1354, 0.1104, 0.1719, 0.1730, 0.0946, 0.1336, 0.2368, 0.1244, 0.3957, 0.3709, 0.2648, 0.5939, 0.5879, 0.6670, 0.7306, 0.7126, 0.7542, 0.4467, 0.6609, 0.5729, 0.5442, 0.3190, 0.4891, 0.4035, 0.3309, 0.2678, 0.3126, 0.3374, 0.2009, 0.2183, 0.2320, 0.2025, 0.2021, 0.1593, 0.2171, 0.0931, 0.0801, 0.1721, 0.0906, 0.0614, 0.0731, 0.2870, 0.1165, 0.0710, 0.0396, 0.2333, 0.1863, 0.1161, 0.1192, 0.3778, 0.1791, 0.0669, 0.1560, 0.2392, 0.1550, 0.1076, 0.1092, 0.1917, 0.2314, 0.1425, 0.2981, 0.1986, 0.2779, 0.4612, 0.4592, 0.4954, 0.5265, 0.7072, 0.7241, 0.6904, 0.6733, 0.7113, 0.6544, 0.6807, 0.6401, 0.6905, 0.6859, 0.7174, 0.7046, 0.7212, 0.7640, 0.7835, 0.7420, 0.7864, 0.8152, 0.8398, 0.7565, 0.7708, 0.7566, 0.7911, 0.8273, 0.8344, 0.8371, 0.7901, 0.8883, 0.8101, 0.8233, 0.8051, 0.7552, 0.7796, 0.7450, 0.7197, 0.6578, 0.5714, 0.5919, 0.5283, 0.5675, 0.5453, 0.4150, 0.2678, 0.3213, 0.1519, 0.3071, 0.1393, 0.1044, 0.1824, 0.2345, 0.2711, 0.3544, 0.3027, 0.6140, 0.1722, 0.1760, 0.0390, 0.4567, 0.6178, 0.0107, 0.0791, 0.3482, 0.1973, 0.0349, 0.0913, 0.4429, 0.2564, 0.3593, 0.3827, 0.1649, 0.2440, 0.2628, 0.1447, 0.1740, 0.5647, 0.1836, 0.4242, 0.1917, 0.2875, 0.2694, 0.1629, 0.1984, 0.1583, 0.3291, 0.2030, 0.0748, 0.2052, 0.2174, 0.2487, 0.4283, 0.6290, 0.5024, 0.2664, 0.4039, 0.1139, 0.2321, 0.1195, 0.1007, 0.5399, 0.1567, 0.2735, 0.1873, 0.1054, 0.1566, 0.0965, 0.0936, 0.2311, 0.0295, 0.1427, 0.1069, 0.3467, 0.2401, 0.3461, 0.3749, 0.3164, 0.3026, 0.2586, 0.2002, 0.2612, 0.2815, 0.5014, 0.2476, 0.0352, 0.3119, 0.0689, 0.0629, 0.0385, 0.0956, 0.1329, 0.1464, 0.1581, 0.2099, 0.1663, 0.1138, 0.1951, 0.0388, 0.1842, 0.0625, 0.1387, 0.0614, 0.1720, 0.0388, 0.2495, 0.1882, 0.1236, 0.1781, 0.2766, 0.3151, 0.2670, 0.1299, 0.2234, 0.3064, 0.0580, 0.2720, 0.3433, 0.1552, 0.1418, 0.4192, 0.5079, 0.5268, 0.1028, 0.2262, 0.4850, 0.2006, 0.1115, 0.4844, 0.6253, 0.5500, 0.6401, 0.6262, 0.7832, 0.6259, 0.6047, 0.6741, 0.7176, 0.7318];
+const PREDICTIONS = [1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1];
+const TRUE_LABELS = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+const RESIDUES    = ['M', 'A', 'K', 'W', 'G', 'E', 'G', 'D', 'P', 'R', 'W', 'I', 'V', 'E', 'E', 'R', 'A', 'D', 'A', 'T', 'N', 'V', 'N', 'N', 'W', 'H', 'W', 'T', 'E', 'R', 'D', 'A', 'S', 'N', 'W', 'S', 'T', 'D', 'K', 'L', 'K', 'T', 'L', 'F', 'L', 'A', 'V', 'Q', 'V', 'Q', 'N', 'E', 'E', 'G', 'K', 'C', 'E', 'V', 'T', 'E', 'V', 'S', 'K', 'L', 'D', 'G', 'E', 'A', 'S', 'I', 'N', 'N', 'R', 'K', 'G', 'K', 'L', 'I', 'F', 'F', 'Y', 'E', 'W', 'S', 'V', 'K', 'L', 'N', 'W', 'T', 'G', 'T', 'S', 'K', 'S', 'G', 'V', 'Q', 'Y', 'K', 'G', 'H', 'V', 'E', 'I', 'P', 'N', 'L', 'S', 'D', 'E', 'N', 'S', 'V', 'D', 'E', 'V', 'E', 'I', 'S', 'V', 'S', 'L', 'A', 'K', 'D', 'E', 'P', 'D', 'T', 'N', 'L', 'V', 'A', 'L', 'M', 'K', 'E', 'E', 'G', 'V', 'K', 'L', 'L', 'R', 'E', 'A', 'M', 'G', 'I', 'Y', 'I', 'S', 'T', 'L', 'K', 'T', 'E', 'F', 'T', 'Q', 'G', 'M', 'I', 'L', 'P', 'T', 'M', 'N', 'G', 'E', 'S', 'V', 'D', 'P', 'V', 'G', 'Q', 'P', 'A', 'L', 'K', 'T', 'E', 'E', 'R', 'K', 'A', 'K', 'P', 'A', 'P', 'S', 'K', 'T', 'Q', 'A', 'R', 'P', 'V', 'G', 'V', 'K', 'I', 'P', 'T', 'C', 'K', 'I', 'T', 'L', 'K', 'E', 'T', 'F', 'L', 'T', 'S', 'P', 'E', 'E', 'L', 'Y', 'R', 'V', 'F', 'T', 'T', 'Q', 'E', 'L', 'V', 'Q', 'A', 'F', 'T', 'H', 'A', 'P', 'A', 'T', 'L', 'E', 'A', 'D', 'R', 'G', 'G', 'K', 'F', 'H', 'M', 'V', 'D', 'G', 'N', 'V', 'S', 'G', 'E', 'F', 'T', 'D', 'L', 'V', 'P', 'E', 'K', 'H', 'I', 'V', 'M', 'K', 'W', 'R', 'F', 'K', 'S', 'W', 'P', 'E', 'G', 'H', 'F', 'A', 'T', 'I', 'T', 'L', 'T', 'F', 'I', 'D', 'K', 'N', 'G', 'E', 'T', 'E', 'L', 'C', 'M', 'E', 'G', 'R', 'G', 'I', 'P', 'A', 'P', 'E', 'E', 'E', 'R', 'T', 'R', 'Q', 'G', 'W', 'Q', 'R', 'Y', 'Y', 'F', 'E', 'G', 'I', 'K', 'Q', 'T', 'F', 'G', 'Y', 'G', 'A', 'R', 'L', 'F'];
+const SEQ_LEN     = 338;
+const UNIPROT_ID  = "O95433";
+
+// AlphaFold pLDDT will be read from B-factor column once structure loads
+let plddt = [];
 
 let currentThreshold = 0.60;
-let stage, structureComponent, currentRepr = "cartoon";
+let colorMode = "binding"; // "binding" | "plddt"
+let stage, structureComp, currentRepr = "cartoon";
 
-// ── Color helpers ─────────────────────────────────────────────────────────────
-function scoreToColor(score) {
+// ── Color helpers — binding score ─────────────────────────────────────────────
+function scoreToRGB(score) {
   if (score < 0.2) return [0.12, 0.23, 0.37];
   if (score < 0.4) return [0.15, 0.39, 0.92];
   if (score < 0.6) return [0.96, 0.62, 0.04];
@@ -230,37 +231,74 @@ function scoreToColor(score) {
 }
 
 function scoreToHex(score) {
-  const [r, g, b] = scoreToColor(score);
-  const h = x => Math.round(x * 255).toString(16).padStart(2, "0");
-  return "#" + h(r) + h(g) + h(b);
+  const [r,g,b] = scoreToRGB(score);
+  const h = x => Math.round(x*255).toString(16).padStart(2,'0');
+  return '#' + h(r) + h(g) + h(b);
+}
+
+// ── Color helpers — pLDDT ─────────────────────────────────────────────────────
+function plddtToRGB(v) {
+  if (v >= 90) return [0.0,  0.25, 0.53];   // dark blue — very high
+  if (v >= 70) return [0.30, 0.72, 0.88];   // light blue — confident
+  if (v >= 50) return [0.96, 0.82, 0.23];   // yellow — low
+  return [1.0, 0.49, 0.27];                  // orange — very low / disordered
 }
 
 // ── NGL color scheme ──────────────────────────────────────────────────────────
-function makeColorScheme(threshold) {
-  return NGL.ColormakerRegistry.addScheme(function(params) {
+function makeColorScheme() {
+  return NGL.ColormakerRegistry.addScheme(function() {
     this.atomColor = function(atom) {
-      if (atom.chainname !== CHAIN_ID) return 0x333333;
-      const idx = atom.resno - 1;   // 0-indexed
-      if (idx < 0 || idx >= SEQ_LEN) return 0x555555;
-      const s = SCORES[idx];
-      const [r, g, b] = scoreToColor(s);
-      return (Math.round(r*255) << 16) | (Math.round(g*255) << 8) | Math.round(b*255);
+      const idx = atom.resno - 1;
+      if (idx < 0 || idx >= SEQ_LEN) return 0x444444;
+      let rgb;
+      if (colorMode === "plddt" && plddt.length > 0) {
+        rgb = plddtToRGB(plddt[idx] || 50);
+      } else {
+        rgb = scoreToRGB(SCORES[idx]);
+      }
+      const [r,g,b] = rgb;
+      return (Math.round(r*255)<<16)|(Math.round(g*255)<<8)|Math.round(b*255);
     };
   });
 }
 
-// ── Build score bar chart ─────────────────────────────────────────────────────
+// ── Extract pLDDT from B-factors ──────────────────────────────────────────────
+function extractPLDDT(comp) {
+  plddt = new Array(SEQ_LEN).fill(50);
+  comp.structure.eachResidue(function(rp) {
+    const idx = rp.resno - 1;
+    if (idx >= 0 && idx < SEQ_LEN) {
+      // average B-factor of CA atoms in this residue
+      let sum = 0, count = 0;
+      rp.eachAtom(function(ap) {
+        if (ap.atomname === 'CA') { sum += ap.bfactor; count++; }
+      });
+      if (count > 0) plddt[idx] = sum / count;
+    }
+  });
+}
+
+// ── Apply coloring ────────────────────────────────────────────────────────────
+function applyColoring() {
+  if (!structureComp) return;
+  structureComp.removeAllRepresentations();
+  const scheme = makeColorScheme();
+  structureComp.addRepresentation(currentRepr, {
+    colorScheme: scheme,
+    opacity: 1.0,
+    roughness: 0.4,
+  });
+}
+
+// ── Build bar chart ───────────────────────────────────────────────────────────
 function buildBars() {
-  const container = document.getElementById("bar-container");
-  container.innerHTML = "";
+  const container = document.getElementById('bar-container');
+  container.innerHTML = '';
   SCORES.forEach((score, i) => {
-    const row = document.createElement("div");
-    row.className = "bar-row";
+    const isTrue = TRUE_LABELS[i] === 1;
+    const row = document.createElement('div');
+    row.className = 'bar-row';
     row.title = `Position ${i+1} (${RESIDUES[i]}) — score: ${score.toFixed(3)}`;
-
-    const isTrue = TRUE_LABELS.length > i && TRUE_LABELS[i] === 1;
-    const dot = `<div class="bar-true" style="background:${isTrue ? "#22c55e" : "transparent"}"></div>`;
-
     row.innerHTML = `
       <div class="bar-pos">${i+1}</div>
       <div class="bar-aa">${RESIDUES[i]}</div>
@@ -268,95 +306,91 @@ function buildBars() {
         <div class="bar-fill" style="width:${score*100}%;background:${scoreToHex(score)}"></div>
       </div>
       <div class="bar-score">${score.toFixed(2)}</div>
-      ${dot}
+      <div class="bar-true" style="background:${isTrue ? '#22c55e' : 'transparent'}"></div>
     `;
-
-    // Click to focus residue in viewer
-    row.addEventListener("click", () => {
-      if (structureComponent) {
-        const sele = `${i+1}:${CHAIN_ID}`;
-        stage.animationControls.zoomMove(
-          structureComponent.getCenter(sele), 15, 500
-        );
+    row.addEventListener('click', () => {
+      if (structureComp) {
+        const sele = `${i+1}`;
+        try {
+          stage.animationControls.zoomMove(structureComp.getCenter(sele), 20, 500);
+        } catch(e) {}
       }
     });
-
     container.appendChild(row);
-  });
-}
-
-// ── Apply coloring to structure ───────────────────────────────────────────────
-function applyColoring(threshold) {
-  if (!structureComponent) return;
-  structureComponent.removeAllRepresentations();
-  const scheme = makeColorScheme(threshold);
-
-  structureComponent.addRepresentation(currentRepr, {
-    colorScheme: scheme,
-    opacity: 1.0,
-    roughness: 0.5,
-  });
-
-  // Show other chains as faint grey cartoon
-  structureComponent.addRepresentation("cartoon", {
-    sele: `not :${CHAIN_ID}`,
-    color: "#222233",
-    opacity: 0.25,
   });
 }
 
 // ── Update stats ──────────────────────────────────────────────────────────────
 function updateStats(threshold) {
-  const nBinding = SCORES.filter(s => s >= threshold).length;
-  document.getElementById("stat-pred").textContent = nBinding;
-  document.getElementById("stat-pct").textContent  = Math.round(nBinding/SEQ_LEN*100) + "%";
+  const n = SCORES.filter(s => s >= threshold).length;
+  document.getElementById('stat-pred').textContent = n;
+  document.getElementById('stat-pct').textContent = Math.round(n/SEQ_LEN*100) + '%';
 }
 
-// ── Initialise NGL ────────────────────────────────────────────────────────────
-window.addEventListener("load", () => {
-  stage = new NGL.Stage("viewport", {
-    backgroundColor: "#0d1117",
-    quality: "medium",
-  });
+// ── Init ──────────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  stage = new NGL.Stage('viewport', { backgroundColor: '#0d1117', quality: 'medium' });
 
-  stage.loadFile("https://files.rcsb.org/download/1WVL.pdb", { defaultRepresentation: false })
+  const afUrl = 'https://alphafold.ebi.ac.uk/files/AF-O95433-F1-model_v6.pdb';
+  stage.loadFile(afUrl, { defaultRepresentation: false })
     .then(comp => {
-      structureComponent = comp;
-      document.getElementById("loading").style.display = "none";
-      applyColoring(currentThreshold);
+      structureComp = comp;
+      document.getElementById('loading').style.display = 'none';
+      extractPLDDT(comp);
+      applyColoring();
       stage.autoView();
     })
     .catch(err => {
-      document.getElementById("loading").textContent =
-        "Could not load structure from RCSB. Check your internet connection.";
+      document.getElementById('loading').textContent =
+        'Could not load AlphaFold structure. Check your internet connection.';
       console.error(err);
     });
 
   buildBars();
 
   // Threshold slider
-  const slider = document.getElementById("threshold-slider");
-  const valLabel = document.getElementById("threshold-val");
-  slider.addEventListener("input", () => {
+  const slider = document.getElementById('threshold-slider');
+  slider.addEventListener('input', () => {
     currentThreshold = parseFloat(slider.value);
-    valLabel.textContent = currentThreshold.toFixed(2);
-    applyColoring(currentThreshold);
+    document.getElementById('threshold-val').textContent = currentThreshold.toFixed(2);
     updateStats(currentThreshold);
   });
 
-  // Representation selector
-  document.getElementById("repr-select").addEventListener("change", e => {
+  // Color mode toggle
+  document.getElementById('btn-binding').addEventListener('click', () => {
+    colorMode = 'binding';
+    document.getElementById('btn-binding').classList.add('active');
+    document.getElementById('btn-plddt').classList.remove('active');
+    document.getElementById('legend-binding').style.display = '';
+    document.getElementById('legend-plddt').style.display = 'none';
+    document.getElementById('color-note').textContent =
+      'Residues colored by predicted binding probability (red = high, blue = low).';
+    applyColoring();
+  });
+
+  document.getElementById('btn-plddt').addEventListener('click', () => {
+    colorMode = 'plddt';
+    document.getElementById('btn-plddt').classList.add('active');
+    document.getElementById('btn-binding').classList.remove('active');
+    document.getElementById('legend-plddt').style.display = '';
+    document.getElementById('legend-binding').style.display = 'none';
+    document.getElementById('color-note').textContent =
+      'AlphaFold pLDDT confidence: orange/red = disordered, blue = structured. ' +
+      'This protein has a disordered N-terminal tail — the target of this predictor.';
+    applyColoring();
+  });
+
+  // Representation
+  document.getElementById('repr-select').addEventListener('change', e => {
     currentRepr = e.target.value;
-    applyColoring(currentThreshold);
+    applyColoring();
   });
 
   // Reset view
-  document.getElementById("btn-reset").addEventListener("click", () => {
-    stage.autoView();
-  });
+  document.getElementById('btn-reset').addEventListener('click', () => stage.autoView());
 
-  // Resize handler
-  window.addEventListener("resize", () => stage.handleResize());
+  // Resize
+  window.addEventListener('resize', () => stage.handleResize());
 });
 </script>
 </body>
