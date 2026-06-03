@@ -14,7 +14,7 @@ Usage:
 
 CAID will mount the embeddings folder at runtime.  The folder must contain
 one file per protein named <protein_id>.npy or <protein_id>.h5, where
-<protein_id> matches the header in the FASTA file (e.g. ">P04637" → "P04637.npy").
+<protein_id> matches the header in the FASTA file (e.g. ">P04637" -> "P04637.npy").
 
 Output structure:
     <output_dir>/
@@ -113,7 +113,7 @@ def read_fasta(path):
             if line.startswith(">"):
                 if current_id is not None:
                     proteins.append((current_id, "".join(current_seq)))
-                # take only the first word as the ID (e.g. ">P04637 human p53" → "P04637")
+                # take only the first word as the ID (e.g. ">P04637 human p53" -> "P04637")
                 current_id = line[1:].split()[0]
                 current_seq = []
             else:
@@ -347,7 +347,7 @@ def main():
             out_path = os.path.join(args.output_dir, binding_type, f"{protein_id}.caid")
             write_caid(out_path, protein_id, sequence, scores, binary)
             n_binding = int(binary.sum())
-            print(f"  {binding_type}: {n_binding}/{len(sequence)} binding → {out_path}")
+            print(f"  {binding_type}: {n_binding}/{len(sequence)} binding -> {out_path}")
 
         elapsed_ms = int((time.time() - t_start) * 1000)
         timings.append((protein_id, elapsed_ms))
