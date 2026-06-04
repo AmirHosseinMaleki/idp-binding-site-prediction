@@ -22,7 +22,7 @@ This document has three sections, each covering the data pipeline for one bindin
 | [ScanNet PPBS](https://github.com/jertubiana/ScanNet/tree/main/datasets) | Protein-Protein | Structured training data | GitHub datasets folder |
 | [DisProt](https://disprot.org/download) | All types | IDP training and test data | TSV export |
 | [UniProt REST API](https://rest.uniprot.org/) | All types | Sequence retrieval for DisProt entries | Programmatic |
-| [CAID3](https://caid.idpcentral.org/) | All types | Benchmark test set, contamination filter | Challenge download |
+| [CAID](https://caid.idpcentral.org/) | All types | Benchmark test set, contamination filter | Challenge download |
 | [MMseqs2](https://github.com/soedinglab/MMseqs2) | All types | Sequence clustering tool | `conda install -c bioconda mmseqs2` |
 
 All datasets must be downloaded manually before running any preparation scripts. Place downloaded files in `data/` at the repository root.

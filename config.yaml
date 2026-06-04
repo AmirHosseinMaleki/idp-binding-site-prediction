@@ -186,6 +186,9 @@ models:
   ion_window_phase2: phase2_model.pt
   ion_window_phase3: phase3_model.pt
 
+  protein_window_phase2: protein_window_phase2_model.pt
+  rna_dna_window_phase1: rna_dna_window_phase1_model.pt
+
 # ---------------------------------------------------------------------------
 # MMseqs2 clustering intermediate files
 # ---------------------------------------------------------------------------

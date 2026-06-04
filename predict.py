@@ -1,9 +1,13 @@
 """
 predict.py — Per-residue binding site prediction on a single protein sequence.
 
+Unlike predict_caid.py (which consumes pre-computed embeddings), this script is
+self-contained: it generates the ESM-2 embeddings itself, so a reviewer can run
+a prediction end-to-end from just a sequence or FASTA file.
+
 Usage:
-    python predict.py --sequence "MSEQNN..." --binding_type protein --output results/prediction.tsv
-    python predict.py --fasta demo/demo_protein.fasta --binding_type ion --output results/prediction.tsv
+    python predict.py --fasta demo/demo_protein.fasta --binding_type protein --output results/prediction.tsv
+    python predict.py --sequence "MAKWGEGD..." --binding_type protein --output results/prediction.tsv
 
 Arguments:
     --sequence      Amino acid sequence string (use this OR --fasta)
@@ -11,13 +15,16 @@ Arguments:
     --binding_type  One of: protein, dna_rna, ion
     --output        Path to write the TSV output (default: prediction.tsv)
     --model_dir     Directory containing .pt model files (default: data/)
-    --threshold     Override the default decision threshold (optional)
 
 Output TSV columns:
     position    1-indexed residue position
     residue     amino acid letter
     score       binding probability (0–1)
     prediction  binary label at the decision threshold (0 or 1)
+
+The decision threshold is fixed per binding type (the F1-optimized values from
+validation): protein 0.60, dna_rna 0.40, ion 0.15. These match the thresholds
+used by predict_caid.py so both scripts produce consistent predictions.
 """
 
 import argparse
@@ -200,10 +207,6 @@ def main():
         "--model_dir", default="data",
         help="Directory containing model .pt files (default: data/).",
     )
-    parser.add_argument(
-        "--threshold", type=float, default=None,
-        help="Override the default decision threshold (optional).",
-    )
 
     args = parser.parse_args()
 
@@ -226,11 +229,10 @@ def main():
         print(f"  Note: replaced {n_j} J residue(s) with L (Leu/Ile ambiguity)")
 
     print(f"  Length:  {len(sequence)} residues")
-    print(f"  Length:  {len(sequence)} residues")
 
     # ── Binding type config ───────────────────────────────────────────────────
     cfg = BINDING_CONFIG[args.binding_type]
-    threshold = args.threshold if args.threshold is not None else cfg["threshold"]
+    threshold = cfg["threshold"]
 
     model_path = os.path.join(args.model_dir, cfg["model_file"])
     if not os.path.exists(model_path):

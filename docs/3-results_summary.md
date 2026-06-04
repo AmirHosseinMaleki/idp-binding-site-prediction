@@ -264,7 +264,7 @@ Thresholds were selected on the validation set by maximising F1 score. The varia
 
 Documentation covers the full pipeline from raw database downloads through final model evaluation. A runnable demo is provided in `demo/` for reviewers who want to verify predictions without re-running the full pipeline.
 
-The trained models are being submitted to the [CAID3 benchmark challenge](https://caid.idpcentral.org/) for direct comparison with published methods.
+The trained models are being submitted to the [CAID benchmark challenge](https://caid.idpcentral.org/) for direct comparison with published methods.
 
 ---
 
