@@ -100,13 +100,13 @@ The repository contains three scripts for running the trained models. They cover
 two scenarios: a single self-contained command for quick use, and a two-step
 pipeline that matches how CAID runs predictions.
 
-| Script | Location | Input | Generates embeddings? | Output |
-|--------|----------|-------|----------------------|--------|
-| `predict.py` | project root | one sequence (`--sequence` or `--fasta`) | **Yes** (built in) | per-residue TSV |
-| `generate_caid_embeddings.py` | project root | multi-sequence FASTA | **Yes** (this is its only job) | one `.npy`/`.h5` per protein |
-| `predict_caid.py` | project root | multi-sequence FASTA **+** pre-computed embeddings | No (reads them) | per-protein `.caid` files + `timings.csv` |
+| Script | Input | Generates embeddings? | Output |
+|--------|-------|----------------------|--------|
+| `predict.py` | one sequence (`--sequence` or `--fasta`) | **Yes** (built in) | per-residue TSV |
+| `generate_caid_embeddings.py` | multi-sequence FASTA | **Yes** (this is its only job) | one `.npy`/`.h5` per protein |
+| `predict_caid.py` | multi-sequence FASTA **+** pre-computed embeddings | No (reads them) | per-protein `.caid` files + `timings.csv` |
 
-**`predict.py` — single-sequence, end-to-end.**
+**`predict.py` - single-sequence, end-to-end.**
 The simplest entry point and the one to use for a quick check or the demo. Give
 it one sequence and a binding type; it loads ESM-2, generates the embeddings
 itself, runs the model, and writes a per-residue TSV (`position`, `residue`,
@@ -116,7 +116,7 @@ itself, runs the model, and writes a per-residue TSV (`position`, `residue`,
 python predict.py --fasta demo/demo_protein.fasta --binding_type protein --output results/prediction.tsv
 ```
 
-**`generate_caid_embeddings.py` — batch embedding generation.**
+**`generate_caid_embeddings.py` - batch embedding generation.**
 Takes a multi-sequence FASTA and writes one ESM-2 embedding file per protein
 (`<protein_id>.npy` or `.h5`, shape `(L, 1280)`, layer 33). This is the step
 that produces the embeddings `predict_caid.py` expects. Run it once to prepare a
@@ -126,7 +126,7 @@ folder of embeddings for a whole test set.
 python generate_caid_embeddings.py --fasta sequences.fasta --output_dir embeddings/
 ```
 
-**`predict_caid.py` — CAID submission entry point.**
+**`predict_caid.py` - CAID submission entry point.**
 The script CAID runs inside the Docker container. It does **not** generate
 embeddings - CAID pre-computes them and mounts the folder at runtime - so it
 reads the pre-computed `.npy`/`.h5` files (the same ones
@@ -226,10 +226,10 @@ The project specification is included at [docs/specification.pdf](docs/specifica
 
 The project uses two separate dependency sets:
 
-- **`requirements.txt`** — full environment for data preparation, embedding
+- **`requirements.txt`** - full environment for data preparation, embedding
   generation, training, and evaluation (GPU recommended). This is the
   environment installed by the steps below.
-- **`requirements-caid.txt`** — minimal CPU-only environment used by the CAID
+- **`requirements-caid.txt`** - minimal CPU-only environment used by the CAID
   Docker image for inference (`torch`, `numpy`, `h5py`). It has loose version
   bounds and is installed only inside the container, not here.
 
