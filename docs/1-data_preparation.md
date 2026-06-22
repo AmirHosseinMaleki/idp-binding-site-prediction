@@ -390,17 +390,21 @@ After running all preparation steps, the final datasets have the following chara
 
 | Dataset | Source | Train Residues | Val Residues | Test Residues | Positive % |
 |---------|--------|---------------|-------------|--------------|------------|
-| Ion (AHoJ-DB) | Structured | ~41,992,000 | ~8,998,000 | 8,998,264 | 1.5% |
-| Ion (DisProt) | IDP | ~19,189 | ~4,112 | 4,112 | 31.3% |
-| DNA/RNA (BioLiP) | Structured | ~734,146 | ~157,317 | 157,317 | ~10% |
-| DNA/RNA (DisProt) | IDP | ~46,289 | ~9,919 | 9,919 | ~24% |
-| Protein (ScanNet) | Structured | ~1,036,882 | ~222,189 | 222,189 | ~18% |
-| Protein (DisProt) | IDP | ~265,879 | ~56,974 | 56,974 | 23.9% |
+| Ion (AHoJ-DB) | Structured | 40,425,126 | 8,897,271 | 8,998,264 | 1.6% |
+| Ion (DisProt) | IDP | 22,674 | 4,940 | 4,112 | 43.0% |
+| DNA/RNA (BioLiP) | Structured | 761,984 | 159,405 | 157,317 | 6.1% |
+| DNA/RNA (DisProt) | IDP | 38,657 | 11,149 | 9,919 | 34.4% |
+| Protein (ScanNet) | Structured | 1,058,012 | 219,052 | 222,189 | 18.2% |
+| Protein (DisProt) | IDP | 263,522 | 49,769 | 56,974 | 29.6% |
 
 **Class imbalance notes:**
-- Ion binding from AHoJ-DB has the most extreme imbalance (1.5% positive), requiring `pos_weight=30.0` in the loss function
-- DisProt datasets are far more balanced (~20-30% positive) as they specifically annotate binding regions in disordered proteins
-- DNA/RNA and protein binding use `pos_weight=3.0`
+- Ion binding from AHoJ-DB has the most extreme imbalance (1.6% positive in
+  training, ~66:1 negative-to-positive), requiring `pos_weight=30.0` in the
+  loss function
+- DisProt datasets are far more balanced (~29-43% positive in training) as they
+  specifically annotate binding regions in disordered proteins
+- DNA/RNA and protein binding use `pos_weight=3.0`; the DisProt-only phase uses
+  `pos_weight=2.5`
 
 **Embedding storage:** Each `.npz` file stores float32 arrays. The full set of embedding files requires approximately 50GB of disk space.
 

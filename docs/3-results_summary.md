@@ -94,8 +94,7 @@ Three binding categories were collected from complementary structured and IDP da
 
 **CAID3 contamination filtering** was applied to remove training sequences similar to the official benchmark test set, ensuring unbiased final evaluation.
 
-**Class imbalance** varies significantly across datasets. The AHoJ-DB ion dataset has the most extreme imbalance (66:1 negative-to-positive ratio), while DisProt datasets are far more balanced (~3:1) because DisProt specifically annotates disordered binding regions.
-
+**Class imbalance** varies significantly across datasets. The AHoJ-DB ion dataset has the most extreme imbalance (~66:1 negative-to-positive ratio, 1.6% positive), while DisProt datasets are far more balanced (roughly 1:1 to 2:1, ~29-43% positive) because DisProt specifically annotates disordered binding regions.
 ---
 
 ## Task 2: Feature Extraction
