@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score
+from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score, recall_score
 from src.utils.config import load_config, get_embedding_path, get_model_path
 import os
 
@@ -179,6 +179,7 @@ def evaluate_complete_metrics(model, loader):
         'AUPRC': average_precision_score(all_labels, all_preds),
         'MCC': matthews_corrcoef(all_labels, preds_binary),
         'F1': f1_score(all_labels, preds_binary),
+        'Recall': recall_score(all_labels, preds_binary),
         'Accuracy': accuracy_score(all_labels, preds_binary)
     }
     
@@ -236,6 +237,7 @@ for arch_name, model, model_path in architectures:
     print(f"    AUPRC:     {metrics['AUPRC']:.4f}")
     print(f"    MCC:       {metrics['MCC']:.4f}")
     print(f"    F1:        {metrics['F1']:.4f}")
+    print(f"    Recall:    {metrics['Recall']:.4f}")
     print(f"    Accuracy:  {metrics['Accuracy']:.4f}")
     
     results.append({

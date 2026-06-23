@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score
+from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score, recall_score
 from src.utils.config import load_config, get_embedding_path, get_model_path
 import os
 
@@ -75,6 +75,7 @@ def evaluate_with_best_threshold(model, loader):
                 'AUPRC': average_precision_score(all_labels, all_preds),
                 'MCC': matthews_corrcoef(all_labels, preds_binary),
                 'F1': f1,
+                'Recall': recall_score(all_labels, preds_binary),
                 'Accuracy': accuracy_score(all_labels, preds_binary)
             }
     
@@ -86,11 +87,11 @@ print("="*60)
 
 # Load test data
 print("\nLoading test data...")
-# biolip_test = EmbeddingDataset('biolip_dna_rna_test_embeddings.npz')
-# disprot_test = EmbeddingDataset('disprot_dna_rna_test_embeddings.npz')
+biolip_test = EmbeddingDataset('biolip_dna_rna_test_embeddings.npz')
+disprot_test = EmbeddingDataset('disprot_dna_rna_test_embeddings.npz')
 
-biolip_test = EmbeddingDataset(get_embedding_path(cfg, "biolip_dna_rna_test"))
-disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_dna_rna_test"))
+# biolip_test = EmbeddingDataset(get_embedding_path(cfg, "biolip_dna_rna_test"))
+# disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_dna_rna_test"))
 
 biolip_loader = DataLoader(biolip_test, batch_size=BATCH_SIZE, num_workers=2)
 disprot_loader = DataLoader(disprot_test, batch_size=BATCH_SIZE, num_workers=2)
@@ -99,15 +100,15 @@ print(f"  BioLip test: {len(biolip_test):,} residues")
 print(f"  DisProt test: {len(disprot_test):,} residues")
 
 # Evaluate both models
-# models_to_evaluate = [
-#     ('Original Phase 3 (Hybrid Val)', 'dna_rna_phase3_model.pt'),
-#     ('IDP-Only Validation', 'dna_rna_hybrid_idpval_model.pt')
-# ]
-
 models_to_evaluate = [
-    ('Original Phase 3 (Hybrid Val)', get_model_path(cfg, "dna_rna_phase3")),
-    ('IDP-Only Validation', get_model_path(cfg, "dna_rna_hybrid"))
+    ('Original Phase 3 (Hybrid Val)', 'dna_rna_phase3_model.pt'),
+    ('IDP-Only Validation', 'dna_rna_hybrid_idpval_model.pt')
 ]
+
+# models_to_evaluate = [
+#     ('Original Phase 3 (Hybrid Val)', get_model_path(cfg, "dna_rna_phase3")),
+#     ('IDP-Only Validation', get_model_path(cfg, "dna_rna_hybrid"))
+# ]
 
 results = {}
 
@@ -131,8 +132,8 @@ for model_name, model_path in models_to_evaluate:
     print(f"  AUPRC: {biolip_metrics['AUPRC']:.4f}")
     print(f"  MCC: {biolip_metrics['MCC']:.4f}")
     print(f"  F1: {biolip_metrics['F1']:.4f}")
+    print(f"  Recall: {biolip_metrics['Recall']:.4f}")
     print(f"  Accuracy: {biolip_metrics['Accuracy']:.4f}")
-    
     # Test on DisProt
     print(f"\nTesting on DisProt (IDPs):")
     disprot_metrics = evaluate_with_best_threshold(model, disprot_loader)
@@ -141,6 +142,7 @@ for model_name, model_path in models_to_evaluate:
     print(f"  AUPRC: {disprot_metrics['AUPRC']:.4f}")
     print(f"  MCC: {disprot_metrics['MCC']:.4f}")
     print(f"  F1: {disprot_metrics['F1']:.4f}")
+    print(f"  Recall: {disprot_metrics['Recall']:.4f}")
     print(f"  Accuracy: {disprot_metrics['Accuracy']:.4f}")
     
     results[model_name] = {

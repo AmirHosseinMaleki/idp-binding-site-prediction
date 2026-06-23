@@ -2,12 +2,12 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score
-from src.utils.config import load_config, get_embedding_path, get_model_path
+from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score, recall_score
+# from src.utils.config import load_config, get_embedding_path, get_model_path
 
 BATCH_SIZE = 512
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-cfg = load_config()
+# cfg = load_config()
 
 class EmbeddingDataset(Dataset):
     def __init__(self, npz_file):
@@ -74,6 +74,7 @@ def evaluate_with_best_threshold(model, loader):
                 'AUPRC': average_precision_score(all_labels, all_preds),
                 'MCC': matthews_corrcoef(all_labels, preds_binary),
                 'F1': f1,
+                'Recall': recall_score(all_labels, preds_binary),
                 'Accuracy': accuracy_score(all_labels, preds_binary)
             }
     
@@ -85,10 +86,10 @@ print("="*60)
 
 # Load test data
 print("\nLoading test data...")
-# biolip_test = EmbeddingDataset('biolip_dna_rna_test_embeddings.npz')
-# disprot_test = EmbeddingDataset('disprot_dna_rna_test_embeddings.npz')
-biolip_test = EmbeddingDataset(get_embedding_path(cfg, "biolip_dna_rna_test"))
-disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_dna_rna_test"))
+biolip_test = EmbeddingDataset('biolip_dna_rna_test_embeddings.npz')
+disprot_test = EmbeddingDataset('disprot_dna_rna_test_embeddings.npz')
+# biolip_test = EmbeddingDataset(get_embedding_path(cfg, "biolip_dna_rna_test"))
+# disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_dna_rna_test"))
 
 biolip_loader = DataLoader(biolip_test, batch_size=BATCH_SIZE, num_workers=2)
 disprot_loader = DataLoader(disprot_test, batch_size=BATCH_SIZE, num_workers=2)
@@ -97,16 +98,16 @@ print(f"  BioLip test: {len(biolip_test):,} residues")
 print(f"  DisProt test: {len(disprot_test):,} residues")
 
 # Evaluate all 3 phases
-# models = [
-#     ('Phase 1 (BioLip only)', 'dna_rna_phase1_model.pt'),
-#     ('Phase 2 (DisProt only)', 'dna_rna_phase2_model.pt'),
-#     ('Phase 3 (Hybrid)', 'dna_rna_phase3_model.pt')
-# ]
 models = [
-    ('Phase 1 (BioLip only)', get_model_path(cfg, "dna_rna_phase1")),
-    ('Phase 2 (DisProt only)', get_model_path(cfg, "dna_rna_phase2")),
-    ('Phase 3 (Hybrid)', get_model_path(cfg, "dna_rna_phase3"))
+    ('Phase 1 (BioLip only)', 'dna_rna_phase1_model.pt'),
+    ('Phase 2 (DisProt only)', 'dna_rna_phase2_model.pt'),
+    ('Phase 3 (Hybrid)', 'dna_rna_phase3_model.pt')
 ]
+# models = [
+#     ('Phase 1 (BioLip only)', get_model_path(cfg, "dna_rna_phase1")),
+#     ('Phase 2 (DisProt only)', get_model_path(cfg, "dna_rna_phase2")),
+#     ('Phase 3 (Hybrid)', get_model_path(cfg, "dna_rna_phase3"))
+# ]
 
 results_summary = []
 
@@ -127,8 +128,9 @@ for phase_name, model_file in models:
     print(f"  AUPRC: {biolip_metrics['AUPRC']:.4f}")
     print(f"  MCC: {biolip_metrics['MCC']:.4f}")
     print(f"  F1: {biolip_metrics['F1']:.4f}")
+    print(f"  Recall: {biolip_metrics['Recall']:.4f}")
     print(f"  Accuracy: {biolip_metrics['Accuracy']:.4f}")
-    
+
     # Test on DisProt
     print(f"\nTesting on DisProt (IDPs):")
     disprot_metrics = evaluate_with_best_threshold(model, disprot_loader)
@@ -137,19 +139,24 @@ for phase_name, model_file in models:
     print(f"  AUPRC: {disprot_metrics['AUPRC']:.4f}")
     print(f"  MCC: {disprot_metrics['MCC']:.4f}")
     print(f"  F1: {disprot_metrics['F1']:.4f}")
+    print(f"  Recall: {disprot_metrics['Recall']:.4f}")
     print(f"  Accuracy: {disprot_metrics['Accuracy']:.4f}")
     
     results_summary.append({
         'Phase': phase_name,
         'BioLip_AUC': biolip_metrics['AUC'],
-        'DisProt_AUC': disprot_metrics['AUC']
+        'DisProt_AUC': disprot_metrics['AUC'],
+        'BioLip_AUPRC': biolip_metrics['AUPRC'],
+        'DisProt_AUPRC': disprot_metrics['AUPRC'],
+        'BioLip_MCC': biolip_metrics['MCC'],
+        'DisProt_MCC': disprot_metrics['MCC']
     })
 
 # Summary comparison
 print("\n" + "="*60)
 print("SUMMARY: AUC Comparison")
 print("="*60)
-print(f"{'Phase':<25} {'BioLip AUC':<15} {'DisProt AUC':<15}")
+print(f"{'Phase':<25} {'BioLip AUC':<15} {'DisProt AUC':<15} {'BioLip AUPRC':<15} {'DisProt AUPRC':<15} {'BioLip MCC':<15} {'DisProt MCC':<15}")
 print("-"*60)
 for r in results_summary:
-    print(f"{r['Phase']:<25} {r['BioLip_AUC']:<15.4f} {r['DisProt_AUC']:<15.4f}")
+    print(f"{r['Phase']:<25} {r['BioLip_AUC']:<15.4f} {r['DisProt_AUC']:<15.4f} {r['BioLip_AUPRC']:<15.4f} {r['DisProt_AUPRC']:<15.4f} {r['BioLip_MCC']:<15.4f} {r['DisProt_MCC']:<15.4f}")

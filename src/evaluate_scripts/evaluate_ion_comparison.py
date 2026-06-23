@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score
+from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score, recall_score
 from src.utils.config import load_config, get_embedding_path, get_model_path
 import os
 
@@ -77,6 +77,7 @@ def evaluate_with_best_threshold(model, loader):
                 'AUPRC': average_precision_score(all_labels, all_preds),
                 'MCC': matthews_corrcoef(all_labels, preds_binary),
                 'F1': f1,
+                'Recall': recall_score(all_labels, preds_binary),
                 'Accuracy': accuracy_score(all_labels, preds_binary)
             }
     
@@ -88,24 +89,24 @@ print("="*60)
 
 # Load test data
 print("\nLoading test data...")
-# ahojdb_test = EmbeddingDataset('ahojdb_test_embeddings.npz')
-# disprot_test = EmbeddingDataset('disprot_ion_test_embeddings.npz')
+ahojdb_test = EmbeddingDataset('ahojdb_test_embeddings.npz')
+disprot_test = EmbeddingDataset('disprot_ion_test_embeddings.npz')
 
-ahojdb_test = EmbeddingDataset(get_embedding_path(cfg, "ahojdb_test"))
-disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_ion_test"))
+# ahojdb_test = EmbeddingDataset(get_embedding_path(cfg, "ahojdb_test"))
+# disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_ion_test"))
 
 ahojdb_loader = DataLoader(ahojdb_test, batch_size=BATCH_SIZE, num_workers=2)
 disprot_loader = DataLoader(disprot_test, batch_size=BATCH_SIZE, num_workers=2)
 
 # Evaluate both models
-# models_to_evaluate = [
-#     ('Original Phase 3 (Hybrid Val)', 'ion_phase3_model.pt'),
-#     ('IDP-Only Validation', 'ion_hybrid_idpval_model.pt')
-# ]
 models_to_evaluate = [
-    ('Original Phase 3 (Hybrid Val)', get_model_path(cfg, "ion_phase3")),
-    ('IDP-Only Validation', get_model_path(cfg, "ion_hybrid"))
+    ('Original Phase 3 (Hybrid Val)', 'ion_phase3_model.pt'),
+    ('IDP-Only Validation', 'ion_hybrid_idpval_model.pt')
 ]
+# models_to_evaluate = [
+#     ('Original Phase 3 (Hybrid Val)', get_model_path(cfg, "ion_phase3")),
+#     ('IDP-Only Validation', get_model_path(cfg, "ion_hybrid"))
+# ]
 
 results = {}
 
@@ -129,6 +130,7 @@ for model_name, model_path in models_to_evaluate:
     print(f"  AUPRC: {ahojdb_metrics['AUPRC']:.4f}")
     print(f"  MCC: {ahojdb_metrics['MCC']:.4f}")
     print(f"  F1: {ahojdb_metrics['F1']:.4f}")
+    print(f"  Recall: {ahojdb_metrics['Recall']:.4f}")
     print(f"  Accuracy: {ahojdb_metrics['Accuracy']:.4f}")
     
     # Test on DisProt
@@ -139,6 +141,7 @@ for model_name, model_path in models_to_evaluate:
     print(f"  AUPRC: {disprot_metrics['AUPRC']:.4f}")
     print(f"  MCC: {disprot_metrics['MCC']:.4f}")
     print(f"  F1: {disprot_metrics['F1']:.4f}")
+    print(f"  Recall: {disprot_metrics['Recall']:.4f}")
     print(f"  Accuracy: {disprot_metrics['Accuracy']:.4f}")
     
     results[model_name] = {

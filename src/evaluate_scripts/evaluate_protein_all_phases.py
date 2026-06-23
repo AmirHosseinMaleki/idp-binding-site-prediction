@@ -81,34 +81,32 @@ def evaluate_with_best_threshold(model, loader):
     return best_metrics
 
 print("="*60)
-print("Ion Binding Site Prediction - Evaluation")
+print("Protein-Protein Binding Site Prediction - Evaluation")
 print("="*60)
 
 # Load test data
 print("\nLoading test data...")
+scannet_test = EmbeddingDataset('scannet_test_embeddings.npz')
+disprot_test = EmbeddingDataset('disprot_test_embeddings.npz')
+# scannet_test = EmbeddingDataset(get_embedding_path(cfg, "scannet_test"))
+# disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_protein_test"))
 
-# ahojdb_test = EmbeddingDataset(get_embedding_path(cfg, "ahojdb_test"))
-# disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_ion_test"))
-
-ahojdb_test = EmbeddingDataset('ahojdb_test_embeddings.npz')
-disprot_test = EmbeddingDataset('disprot_ion_test_embeddings.npz')
-
-ahojdb_loader = DataLoader(ahojdb_test, batch_size=BATCH_SIZE, num_workers=2)
+scannet_loader = DataLoader(scannet_test, batch_size=BATCH_SIZE, num_workers=2)
 disprot_loader = DataLoader(disprot_test, batch_size=BATCH_SIZE, num_workers=2)
 
-print(f"  AHoJ-DB test: {len(ahojdb_test):,} residues")
+print(f"  ScanNet test: {len(scannet_test):,} residues")
 print(f"  DisProt test: {len(disprot_test):,} residues")
 
 # Evaluate all 3 phases
 models = [
-    ('Phase 1 (AHoJ-DB only)', 'ion_phase1_model.pt'),
-    ('Phase 2 (DisProt only)', 'ion_phase2_model.pt'),
-    ('Phase 3 (Hybrid)', 'ion_phase3_model.pt')
+    ('Phase 1 (ScanNet only)', 'protein_phase1_esm_model.pt'),
+    ('Phase 2 (DisProt only)', 'protein_phase2_esm_model.pt'),
+    ('Phase 3 (Hybrid)', 'protein_phase3_esm_model.pt')
 ]
 # models = [
-#     ('Phase 1 (AHoJ-DB only)', get_model_path(cfg, "ion_phase1")),
-#     ('Phase 2 (DisProt only)', get_model_path(cfg, "ion_phase2")),
-#     ('Phase 3 (Hybrid)', get_model_path(cfg, "ion_phase3"))
+#     ('Phase 1 (ScanNet only)', get_model_path(cfg, "protein_phase1")),
+#     ('Phase 2 (DisProt only)', get_model_path(cfg, "protein_phase2")),
+#     ('Phase 3 (Hybrid)', get_model_path(cfg, "protein_phase3"))
 # ]
 
 results_summary = []
@@ -122,17 +120,17 @@ for phase_name, model_file in models:
     model = BindingNet(input_size=1280).to(DEVICE)
     model.load_state_dict(torch.load(model_file, map_location=DEVICE))
     
-    # Test on AHoJ-DB
-    print(f"\nTesting on AHoJ-DB (Structured):")
-    ahojdb_metrics = evaluate_with_best_threshold(model, ahojdb_loader)
-    print(f"  Threshold: {ahojdb_metrics['Threshold']:.2f}")
-    print(f"  AUC: {ahojdb_metrics['AUC']:.4f}")
-    print(f"  AUPRC: {ahojdb_metrics['AUPRC']:.4f}")
-    print(f"  MCC: {ahojdb_metrics['MCC']:.4f}")
-    print(f"  F1: {ahojdb_metrics['F1']:.4f}")
-    print(f"  Recall: {ahojdb_metrics['Recall']:.4f}")
-    print(f"  Accuracy: {ahojdb_metrics['Accuracy']:.4f}")
-    
+    # Test on ScanNet
+    print(f"\nTesting on ScanNet (Structured):")
+    scannet_metrics = evaluate_with_best_threshold(model, scannet_loader)
+    print(f"  Threshold: {scannet_metrics['Threshold']:.2f}")
+    print(f"  AUC: {scannet_metrics['AUC']:.4f}")
+    print(f"  AUPRC: {scannet_metrics['AUPRC']:.4f}")
+    print(f"  MCC: {scannet_metrics['MCC']:.4f}")
+    print(f"  F1: {scannet_metrics['F1']:.4f}")
+    print(f"  Recall: {scannet_metrics['Recall']:.4f}")
+    print(f"  Accuracy: {scannet_metrics['Accuracy']:.4f}")
+
     # Test on DisProt
     print(f"\nTesting on DisProt (IDPs):")
     disprot_metrics = evaluate_with_best_threshold(model, disprot_loader)
@@ -146,11 +144,11 @@ for phase_name, model_file in models:
     
     results_summary.append({
         'Phase': phase_name,
-        'AHoJ_AUC': ahojdb_metrics['AUC'],
+        'ScanNet_AUC': scannet_metrics['AUC'],
         'DisProt_AUC': disprot_metrics['AUC'],
-        'AHoJ_AUPRC': ahojdb_metrics['AUPRC'],
+        'ScanNet_AUPRC': scannet_metrics['AUPRC'],
         'DisProt_AUPRC': disprot_metrics['AUPRC'],
-        'AHoJ_MCC': ahojdb_metrics['MCC'],
+        'ScanNet_MCC': scannet_metrics['MCC'],
         'DisProt_MCC': disprot_metrics['MCC']
     })
 
@@ -158,7 +156,7 @@ for phase_name, model_file in models:
 print("\n" + "="*60)
 print("SUMMARY: AUC Comparison")
 print("="*60)
-print(f"{'Phase':<25} {'AHoJ-DB AUC':<15} {'DisProt AUC':<15} {'AHoJ-DB AUPRC':<15} {'DisProt AUPRC':<15} {'AHoJ-DB MCC':<15} {'DisProt MCC':<15}")
+print(f"{'Phase':<25} {'ScanNet AUC':<15} {'DisProt AUC':<15} {'ScanNet AUPRC':<15} {'DisProt AUPRC':<15} {'ScanNet MCC':<15} {'DisProt MCC':<15}")
 print("-"*60)
 for r in results_summary:
-    print(f"{r['Phase']:<25} {r['AHoJ_AUC']:<15.4f} {r['DisProt_AUC']:<15.4f} {r['AHoJ_AUPRC']:<15.4f} {r['DisProt_AUPRC']:<15.4f} {r['AHoJ_MCC']:<15.4f} {r['DisProt_MCC']:<15.4f}")
+    print(f"{r['Phase']:<25} {r['ScanNet_AUC']:<15.4f} {r['DisProt_AUC']:<15.4f} {r['ScanNet_AUPRC']:<15.4f} {r['DisProt_AUPRC']:<15.4f} {r['ScanNet_MCC']:<15.4f} {r['DisProt_MCC']:<15.4f}")

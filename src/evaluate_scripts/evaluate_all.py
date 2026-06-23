@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score
+from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score, recall_score
 from src.utils.config import load_config, get_dataset_path, get_model_path
 
 WINDOW_SIZE = 31
@@ -119,6 +119,7 @@ def evaluate_model(model, loader, threshold=0.5):
     auprc = average_precision_score(all_labels, all_preds)
     mcc = matthews_corrcoef(all_labels, preds_binary)
     f1 = f1_score(all_labels, preds_binary)
+    recall = recall_score(all_labels, preds_binary)
     acc = accuracy_score(all_labels, preds_binary)
     
     return {
@@ -126,6 +127,7 @@ def evaluate_model(model, loader, threshold=0.5):
         'AUPRC': auprc,
         'MCC': mcc,
         'F1': f1,
+        'Recall': recall,
         'Accuracy': acc
     }
 

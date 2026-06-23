@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score
+from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score, recall_score
 from src.utils.config import load_config, get_embedding_path, get_model_path
 
 BATCH_SIZE = 512
@@ -74,6 +74,7 @@ def evaluate_with_best_threshold(model, loader):
                 'AUPRC': average_precision_score(all_labels, all_preds),
                 'MCC': matthews_corrcoef(all_labels, preds_binary),
                 'F1': f1,
+                'Recall': recall_score(all_labels, preds_binary),
                 'Accuracy': accuracy_score(all_labels, preds_binary)
             }
     
@@ -86,11 +87,11 @@ print("="*60)
 cfg = load_config()
 
 print("\nLoading test data...")
-# scannet_test = EmbeddingDataset('scannet_test_embeddings.npz')
-# disprot_test = EmbeddingDataset('disprot_test_embeddings.npz')
+scannet_test = EmbeddingDataset('scannet_test_embeddings.npz')
+disprot_test = EmbeddingDataset('disprot_test_embeddings.npz')
 
-scannet_test = EmbeddingDataset(get_embedding_path(cfg, "scannet_test"))
-disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_protein_test"))
+# scannet_test = EmbeddingDataset(get_embedding_path(cfg, "scannet_test"))
+# disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_protein_test"))
 
 scannet_loader = DataLoader(scannet_test, batch_size=BATCH_SIZE, num_workers=2)
 disprot_loader = DataLoader(disprot_test, batch_size=BATCH_SIZE, num_workers=2)
@@ -100,8 +101,8 @@ print(f"  DisProt test: {len(disprot_test):,} residues")
 
 # Load model
 model = BindingNet(input_size=1280).to(DEVICE)
-# model.load_state_dict(torch.load('protein_phase2_esm_model.pt', map_location=DEVICE))
-model.load_state_dict(torch.load(get_model_path(cfg, "protein_phase2"), map_location=DEVICE))
+model.load_state_dict(torch.load('protein_phase2_esm_model.pt', map_location=DEVICE))
+# model.load_state_dict(torch.load(get_model_path(cfg, "protein_phase2"), map_location=DEVICE))
 
 print(f"\nUsing device: {DEVICE}")
 

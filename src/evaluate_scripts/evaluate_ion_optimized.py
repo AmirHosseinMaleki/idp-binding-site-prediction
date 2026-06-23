@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score
+from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score, recall_score
 from src.utils.config import load_config, get_embedding_path, get_model_path
 
 BATCH_SIZE = 512
@@ -76,6 +76,7 @@ def evaluate_with_best_threshold(model, loader):
                 'AUPRC': average_precision_score(all_labels, all_preds),
                 'MCC': matthews_corrcoef(all_labels, preds_binary),
                 'F1': f1,
+                'Recall': recall_score(all_labels, preds_binary),
                 'Accuracy': accuracy_score(all_labels, preds_binary)
             }
     
@@ -87,19 +88,19 @@ print("="*60)
 
 # Load test data
 print("\nLoading test data...")
-# ahojdb_test = EmbeddingDataset('ahojdb_test_embeddings.npz')
-# disprot_test = EmbeddingDataset('disprot_ion_test_embeddings.npz')
+ahojdb_test = EmbeddingDataset('ahojdb_test_embeddings.npz')
+disprot_test = EmbeddingDataset('disprot_ion_test_embeddings.npz')
 
-ahojdb_test = EmbeddingDataset(get_embedding_path(cfg, "ahojdb_test"))
-disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_ion_test"))
+# ahojdb_test = EmbeddingDataset(get_embedding_path(cfg, "ahojdb_test"))
+# disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_ion_test"))
 
 ahojdb_loader = DataLoader(ahojdb_test, batch_size=BATCH_SIZE, num_workers=2)
 disprot_loader = DataLoader(disprot_test, batch_size=BATCH_SIZE, num_workers=2)
 
 # Load model
 model = BindingNet(input_size=1280).to(DEVICE)
-# model.load_state_dict(torch.load('ion_hybrid_idpval_model.pt', map_location=DEVICE))
-model.load_state_dict(torch.load(get_model_path(cfg, "ion_hybrid"), map_location=DEVICE))
+model.load_state_dict(torch.load('ion_hybrid_idpval_model.pt', map_location=DEVICE))
+# model.load_state_dict(torch.load(get_model_path(cfg, "ion_hybrid"), map_location=DEVICE))
 
 print(f"\nUsing device: {DEVICE}")
 print("\nModel: ion_hybrid_idpval_model.pt (Optimized - epoch 1, val loss 9.3526)")
@@ -116,7 +117,7 @@ print(f"  AUPRC: {metrics['AUPRC']:.4f}")
 print(f"  MCC: {metrics['MCC']:.4f}")
 print(f"  F1: {metrics['F1']:.4f}")
 print(f"  Accuracy: {metrics['Accuracy']:.4f}")
-
+print(f"  Recall: {metrics['Recall']:.4f}")
 # Test on DisProt
 print("\n" + "="*60)
 print("Testing on DisProt (IDPs)")
@@ -128,5 +129,5 @@ print(f"  AUPRC: {metrics['AUPRC']:.4f}")
 print(f"  MCC: {metrics['MCC']:.4f}")
 print(f"  F1: {metrics['F1']:.4f}")
 print(f"  Accuracy: {metrics['Accuracy']:.4f}")
-
+print(f"  Recall: {metrics['Recall']:.4f}")
 print("\n" + "="*60)

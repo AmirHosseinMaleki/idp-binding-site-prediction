@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score
+from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score, recall_score
 from src.utils.config import load_config, get_embedding_path, get_model_path
 
 BATCH_SIZE = 512
@@ -74,6 +74,7 @@ def evaluate_with_best_threshold(model, loader):
                 'AUPRC': average_precision_score(all_labels, all_preds),
                 'MCC': matthews_corrcoef(all_labels, preds_binary),
                 'F1': f1,
+                'Recall': recall_score(all_labels, preds_binary),
                 'Accuracy': accuracy_score(all_labels, preds_binary)
             }
     
@@ -116,7 +117,7 @@ print(f"  AUPRC: {metrics['AUPRC']:.4f}")
 print(f"  MCC: {metrics['MCC']:.4f}")
 print(f"  F1: {metrics['F1']:.4f}")
 print(f"  Accuracy: {metrics['Accuracy']:.4f}")
-
+print(f"  Recall: {metrics['Recall']:.4f}")
 # Test on DisProt
 print("\n" + "="*60)
 print("Testing on DisProt (IDPs)")
@@ -128,5 +129,6 @@ print(f"  AUPRC: {metrics['AUPRC']:.4f}")
 print(f"  MCC: {metrics['MCC']:.4f}")
 print(f"  F1: {metrics['F1']:.4f}")
 print(f"  Accuracy: {metrics['Accuracy']:.4f}")
+print(f"  Recall: {metrics['Recall']:.4f}")
 
 print("\n" + "="*60)

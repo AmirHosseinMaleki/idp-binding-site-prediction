@@ -5,8 +5,8 @@
 #SBATCH --nodes=1
 #SBATCH --mem=512000
 #SBATCH --gpus=1                  
-#SBATCH --job-name="eval-ion"
-#SBATCH --output=evaluation_ion_output.txt
+#SBATCH --job-name="eval-dna-rna"
+#SBATCH --output=evaluate_dna_rna_all_phases.txt
 
 cd /home/malekia/idp-binding-site-prediction/data
 
@@ -15,4 +15,4 @@ source ~/miniconda3/etc/profile.d/conda.sh
 conda activate protein
 
 # Run evaluation with high memory
-python3 /home/malekia/idp-binding-site-prediction/src/evaluate_scripts/evaluate_ion_all_phases.py
+python3 /home/malekia/idp-binding-site-prediction/src/evaluate_scripts/evaluate_dna_rna_all_phases.py

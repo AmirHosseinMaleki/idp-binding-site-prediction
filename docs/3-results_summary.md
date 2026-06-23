@@ -204,27 +204,27 @@ The key innovation in Phase 3 is using DisProt-only validation (not mixed) to se
 
 **Protein-Protein Binding:**
 
-| Phase | ScanNet AUC | DisProt AUC |
-|---|---|---|
-| Phase 1 (ScanNet only) | **0.7849** | 0.7187 |
-| Phase 2 (DisProt only) | 0.5598 | 0.8396 |
-| **Phase 3 (Hybrid)** | **0.7756** | **0.8404** |
+| Phase | ScanNet AUC | ScanNet AUPRC | ScanNet MCC | DisProt AUC | DisProt AUPRC | DisProt MCC | DisProt Recall |
+|---|---|---|---|---|---|---|---|
+| Phase 1 (ScanNet only) | **0.7849** | **0.4876** | **0.3498** | 0.7187 | 0.4515 | 0.2883 | 0.6939 |
+| Phase 2 (DisProt only) | 0.5598 | 0.2254 | 0.0540 | 0.8396 | 0.6124 | 0.4863 | **0.7995** |
+| **Phase 3 (Hybrid)** | 0.7756 | 0.4660 | 0.3337 | **0.8404** | **0.6243** | **0.5011** | 0.7635 |
 
 **DNA/RNA Binding:**
 
-| Phase | BioLiP AUC | DisProt AUC |
-|---|---|---|
-| Phase 1 (BioLiP only) | **0.8975** | 0.6180 |
-| Phase 2 (DisProt only) | 0.6308 | 0.6957 |
-| **Phase 3 (Hybrid)** | **0.8857** | **0.7121** |
+| Phase | BioLiP AUC | BioLiP AUPRC | BioLiP MCC | DisProt AUC | DisProt AUPRC | DisProt MCC | DisProt Recall |
+|---|---|---|---|---|---|---|---|
+| Phase 1 (BioLiP only) | **0.8975** | **0.4515** | **0.4324** | 0.6180 | 0.4571 | 0.1595 | 0.4099 |
+| Phase 2 (DisProt only) | 0.6308 | 0.1335 | 0.1279 | 0.6957 | 0.5448 | 0.3129 | **0.6341** |
+| **Phase 3 (Hybrid)** | 0.8857 | 0.4304 | 0.4131 | **0.7121** | **0.5570** | **0.3710** | 0.5667 |
 
 **Ion Binding:**
 
-| Phase | AHoJ-DB AUC | DisProt AUC |
-|---|---|---|
-| Phase 1 (AHoJ-DB only) | **0.9764** | 0.8111 |
-| Phase 2 (DisProt only) | 0.5679 | 0.7661 |
-| **Phase 3 (Hybrid)** | **0.9762** | **0.8581** |
+| Phase | AHoJ-DB AUC | AHoJ-DB AUPRC | AHoJ-DB MCC | DisProt AUC | DisProt AUPRC | DisProt MCC | DisProt Recall |
+|---|---|---|---|---|---|---|---|
+| Phase 1 (AHoJ-DB only) | **0.9764** | **0.6537** | **0.5933** | 0.8111 | 0.5539 | 0.4235 | 0.5487 |
+| Phase 2 (DisProt only) | 0.5679 | 0.0273 | 0.0517 | 0.7661 | 0.5575 | 0.3354 | 0.8168 |
+| **Phase 3 (Hybrid)** | 0.9762 | 0.6516 | 0.5905 | **0.8581** | **0.6547** | **0.5035** | **0.8346** |
 
 **Key finding - the hybrid approach validates the research hypothesis across all three binding types:**
 - Phase 3 maintains near-identical performance on structured test sets vs Phase 1 (no negative transfer from adding IDP data)
