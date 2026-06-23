@@ -3,11 +3,11 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score, recall_score
-from src.utils.config import load_config, get_embedding_path, get_model_path
+# from src.utils.config import load_config, get_embedding_path, get_model_path
 
 BATCH_SIZE = 512
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-cfg = load_config()
+# cfg = load_config()
 
 class EmbeddingDataset(Dataset):
     def __init__(self, npz_file):
@@ -116,8 +116,9 @@ print(f"  AUC: {metrics['AUC']:.4f}")
 print(f"  AUPRC: {metrics['AUPRC']:.4f}")
 print(f"  MCC: {metrics['MCC']:.4f}")
 print(f"  F1: {metrics['F1']:.4f}")
-print(f"  Accuracy: {metrics['Accuracy']:.4f}")
 print(f"  Recall: {metrics['Recall']:.4f}")
+print(f"  Accuracy: {metrics['Accuracy']:.4f}")
+
 # Test on DisProt
 print("\n" + "="*60)
 print("Testing on DisProt (IDPs)")
@@ -128,6 +129,6 @@ print(f"  AUC: {metrics['AUC']:.4f}")
 print(f"  AUPRC: {metrics['AUPRC']:.4f}")
 print(f"  MCC: {metrics['MCC']:.4f}")
 print(f"  F1: {metrics['F1']:.4f}")
-print(f"  Accuracy: {metrics['Accuracy']:.4f}")
 print(f"  Recall: {metrics['Recall']:.4f}")
+print(f"  Accuracy: {metrics['Accuracy']:.4f}")
 print("\n" + "="*60)

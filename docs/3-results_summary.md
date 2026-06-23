@@ -236,11 +236,11 @@ The key innovation in Phase 3 is using DisProt-only validation (not mixed) to se
 
 Best models selected by DisProt validation AUC with optimized hyperparameters (LR=0.00005, WD=0.001):
 
-| Binding Type | Threshold | AUC | AUPRC | MCC | F1 | Accuracy |
-|---|---|---|---|---|---|---|
-| Protein-Protein | 0.60 | 0.8394 | 0.6214 | 0.4986 | 0.6460 | 0.7715 |
-| DNA/RNA | 0.40 | 0.7126 | 0.5548 | 0.3618 | 0.5881 | 0.7078 |
-| Ion | 0.15 | 0.8487 | 0.5931 | 0.4898 | 0.6135 | 0.7524 |
+| Binding Type | Threshold | AUC | AUPRC | MCC | F1 | Recall | Accuracy |
+|---|---|---|---|---|---|---|---|
+| Protein-Protein | 0.60 | 0.8394 | 0.6214 | 0.4986 | 0.6460 | 0.7733 | 0.7715 |
+| DNA/RNA | 0.40 | 0.7126 | 0.5548 | 0.3618 | 0.5881 | 0.5901 | 0.7078 |
+| Ion | 0.15 | 0.8487 | 0.5931 | 0.4898 | 0.6135 | 0.8461 | 0.7524 |
 
 **Baseline comparison (default hyperparameters, IDP-only validation):**
 

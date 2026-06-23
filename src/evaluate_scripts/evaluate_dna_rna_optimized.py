@@ -3,11 +3,11 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score, recall_score
-from src.utils.config import load_config, get_embedding_path, get_model_path
+# from src.utils.config import load_config, get_embedding_path, get_model_path
 
 BATCH_SIZE = 512
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-cfg = load_config()
+# cfg = load_config()
 
 class EmbeddingDataset(Dataset):
     def __init__(self, npz_file):
@@ -86,10 +86,10 @@ print("="*60)
 
 # Load test data
 print("\nLoading test data...")
-# biolip_test = EmbeddingDataset('biolip_dna_rna_test_embeddings.npz')
-# disprot_test = EmbeddingDataset('disprot_dna_rna_test_embeddings.npz')
-biolip_test = EmbeddingDataset(get_embedding_path(cfg, "biolip_dna_rna_test"))
-disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_dna_rna_test"))
+biolip_test = EmbeddingDataset('biolip_dna_rna_test_embeddings.npz')
+disprot_test = EmbeddingDataset('disprot_dna_rna_test_embeddings.npz')
+# biolip_test = EmbeddingDataset(get_embedding_path(cfg, "biolip_dna_rna_test"))
+# disprot_test = EmbeddingDataset(get_embedding_path(cfg, "disprot_dna_rna_test"))
 
 biolip_loader = DataLoader(biolip_test, batch_size=BATCH_SIZE, num_workers=2)
 disprot_loader = DataLoader(disprot_test, batch_size=BATCH_SIZE, num_workers=2)
@@ -99,8 +99,8 @@ print(f"  DisProt test: {len(disprot_test):,} residues")
 
 # Load model
 model = BindingNet(input_size=1280).to(DEVICE)
-# model.load_state_dict(torch.load('dna_rna_hybrid_idpval_model.pt', map_location=DEVICE))
-model.load_state_dict(torch.load(get_model_path(cfg, "dna_rna_hybrid"), map_location=DEVICE))
+model.load_state_dict(torch.load('dna_rna_hybrid_idpval_model.pt', map_location=DEVICE))
+# model.load_state_dict(torch.load(get_model_path(cfg, "dna_rna_hybrid"), map_location=DEVICE))
 
 print(f"\nUsing device: {DEVICE}")
 print("\nModel: dna_rna_hybrid_idpval_model.pt (Optimized - epoch 3, val loss 1.2289)")
@@ -116,8 +116,9 @@ print(f"  AUC: {metrics['AUC']:.4f}")
 print(f"  AUPRC: {metrics['AUPRC']:.4f}")
 print(f"  MCC: {metrics['MCC']:.4f}")
 print(f"  F1: {metrics['F1']:.4f}")
-print(f"  Accuracy: {metrics['Accuracy']:.4f}")
 print(f"  Recall: {metrics['Recall']:.4f}")
+print(f"  Accuracy: {metrics['Accuracy']:.4f}")
+
 # Test on DisProt
 print("\n" + "="*60)
 print("Testing on DisProt (IDPs)")
@@ -128,7 +129,7 @@ print(f"  AUC: {metrics['AUC']:.4f}")
 print(f"  AUPRC: {metrics['AUPRC']:.4f}")
 print(f"  MCC: {metrics['MCC']:.4f}")
 print(f"  F1: {metrics['F1']:.4f}")
-print(f"  Accuracy: {metrics['Accuracy']:.4f}")
 print(f"  Recall: {metrics['Recall']:.4f}")
+print(f"  Accuracy: {metrics['Accuracy']:.4f}")
 
 print("\n" + "="*60)
