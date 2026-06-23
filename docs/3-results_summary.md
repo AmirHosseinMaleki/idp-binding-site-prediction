@@ -149,7 +149,7 @@ Four architectures were evaluated on the protein-protein binding task (DisProt t
 
 **CNN and Recurrent vs MLP baseline:**
 
-| Architecture | Δ AUC | Δ AUPRC | Δ MCC | Δ F1 |
+| Architecture | AUC | AUPRC | MCC | F1 |
 |---|---|---|---|---|
 | 1D CNN | -0.0163 | -0.0123 | -0.0341 | -0.0225 |
 | Bi-LSTM | -0.0214 | -0.0446 | -0.0426 | -0.0283 |
